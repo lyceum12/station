@@ -3,686 +3,497 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Станция КОГЭ 2025 - Информатика</title>
+    <title>Вступительные испытания</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #FFFFFF; font-family: 'Inter', 'Arial', sans-serif; }
+        .app-window { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; background: #FFFFFF; }
+        .start-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center;
+            z-index: 2000; backdrop-filter: blur(4px);
         }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: #FFFFFF;
-        }
-        body {
-            font-family: 'Inter', 'Arial', sans-serif;
-        }
-        .app-window {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: #FFFFFF;
-        }
-        .top-bar {
-            background: #1E325A;
-            height: 61px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .kim-info {
-            font-family: 'Inter', sans-serif;
-            font-size: 20px;
-            font-weight: 400;
-            color: #FFFFFF;
-            background: rgba(255,255,255,0.15);
-            padding: 5px 12px;
-            border-radius: 24px;
-            transition: 0.2s;
-            cursor: default;
-            white-space: nowrap;
-        }
-        .kim-info.editable { cursor: pointer; }
-        .kim-info.editable:hover { background: rgba(255,255,255,0.3); }
-        .timer-box { display: flex; align-items: center; gap: 8px; }
-        .timer-icon {
-            background: #FFFFFF;
-            border-radius: 20px;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #087475;
-        }
-        .timer {
-            font-family: 'Inter', monospace;
-            font-weight: 800;
-            font-size: 24px;
-            color: #087475;
-            background: #FFFFFF;
-            padding: 4px 12px;
-            border-radius: 28px;
-            letter-spacing: 1px;
-        }
-        .font-controls {
-            display: flex;
-            gap: 6px;
-            background: rgba(255,255,255,0.15);
-            padding: 4px 10px;
-            border-radius: 32px;
-        }
-        .font-btn {
-            background: #FFFFFF;
-            border: none;
-            font-weight: bold;
-            font-size: 18px;
-            width: 32px;
-            height: 32px;
-            border-radius: 20px;
-            cursor: pointer;
-            color: #1E325A;
-            font-family: monospace;
-        }
-        .font-btn:hover { background: #e2e8f0; }
-        .top-actions { display: flex; gap: 12px; margin-left: auto; }
-        .top-icon-btn {
-            background: transparent;
-            border: none;
-            font-size: 20px;
-            color: white;
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .top-icon-btn:hover { background: #2c4a7a; }
-        .stats-panel {
-            background: #FFFFFF;
-            padding: 5px 20px;
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            border-bottom: 1px solid #E2E8F0;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .stats-label { font-size: 16px; font-weight: 500; color: #000000; }
-        .stats-count { font-size: 24px; font-weight: 800; color: #000000; }
-        .questions-nav {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            top: -12px;
-            z-index: 25;
-            display: flex;
-            background: #F8FAFC;
-            padding: 5px 5px;
-            border-bottom: 1px solid #CBD5E1;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
-            max-width: 70%;
-            border-radius: 32px;
-        }
-        .buttons-wrapper { display: inline-flex; gap: 8px; align-items: center; }
-        .q-btn {
-            font-family: 'Inter', 'Arial', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            width: 42px;
-            height: 28px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #F0F0F0;
-            color: #1E325A;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
+        .start-card { background: white; border-radius: 32px; padding: 40px; width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .start-card h1 { font-size: 28px; margin-bottom: 24px; color: #1E325A; }
+        .start-card input { width: 100%; padding: 14px; font-size: 16px; border: 2px solid #ddd; border-radius: 40px; margin-bottom: 24px; outline: none; }
+        .start-card input:focus { border-color: #1E325A; }
+        .start-btn { width: 100%; padding: 14px; font-size: 18px; font-weight: bold; border: none; border-radius: 40px; background: #ccc; color: #666; cursor: not-allowed; transition: 0.2s; margin-bottom: 16px; }
+        .start-btn.active { background: #2e7d32; color: white; cursor: pointer; }
+        .tech-btn { background: #1E325A; color: white; border: none; padding: 12px; border-radius: 40px; font-size: 14px; cursor: pointer; width: 100%; }
+        .exam-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        .hidden { display: none; }
+        .top-bar { background: #1E325A; height: 61px; display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; }
+        .fio-info, .variant-info { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 24px; color: white; font-size: 18px; font-weight: 500; }
+        .timer { font-family: monospace; font-weight: 800; font-size: 24px; color: #087475; background: white; padding: 4px 12px; border-radius: 28px; }
+        .font-controls { display: flex; gap: 6px; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 32px; }
+        .font-btn { background: white; border: none; font-weight: bold; font-size: 18px; width: 32px; height: 32px; border-radius: 20px; cursor: pointer; color: #1E325A; }
+        .stats-panel { background: white; padding: 5px 20px; display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid #E2E8F0; position: relative; }
+        .stats-label { font-size: 16px; font-weight: 500; }
+        .stats-count { font-size: 24px; font-weight: 800; }
+        .questions-nav { position: absolute; left: 50%; transform: translateX(-50%); top: -12px; background: #F8FAFC; padding: 5px; border-radius: 32px; overflow-x: auto; white-space: nowrap; max-width: 70%; }
+        .buttons-wrapper { display: inline-flex; gap: 8px; }
+        .q-btn { font-weight: 700; font-size: 14px; width: 42px; height: 28px; border: none; border-radius: 6px; cursor: pointer; background: #F0F0F0; }
         .q-btn.answered { background: #C0C0C0; }
         .q-btn.current { background: #FFD7CC; box-shadow: 0 0 0 2px #FF8A5C; }
-        .q-btn:hover { filter: brightness(0.96); }
-        .content-area {
-            flex: 1;
-            background: #FFFFFF;
-            padding: 0;
-            overflow: hidden;
-            border-bottom: 1px solid #D7DDD9;
-            position: relative;
-        }
-        .question-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
-        .file-bar {
-            background: #1E325A;
-            padding: 8px 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-        }
-        .file-btn-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            background: #2c4a7a;
-            padding: 4px 12px;
-            border-radius: 40px;
-        }
-        .file-action-btn {
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 12px;
-            background: #F0F0F0;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 24px;
-            cursor: pointer;
-        }
-        .file-status { font-size: 11px; color: #cbd5e1; margin-left: 4px; }
-        .answer-area {
-            background: #FFFFFF;
-            padding: 12px 20px 20px 20px;
-            border-top: 1px solid #D7DDD9;
-            flex-shrink: 0;
-        }
-        .answer-textbox {
-            width: 100%;
-            min-height: 120px;
-            padding: 16px;
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 18px;
-            border: 1px solid #aaa;
-            border-radius: 12px;
-            resize: vertical;
-            outline: none;
-            background: #ffffff;
-        }
-        .answer-textbox:focus { border-color: #1E325A; }
+        .content-area { flex: 1; padding: 0; overflow: auto; position: relative; display: flex; justify-content: center; align-items: flex-start; }
+        .question-iframe { width: 100%; height: 100%; border: none; transition: transform 0.1s ease; transform-origin: top left; }
+        .file-bar { background: #1E325A; padding: 8px 20px; display: flex; gap: 16px; flex-wrap: wrap; }
+        .file-btn-group { background: #2c4a7a; padding: 4px 12px; border-radius: 40px; display: flex; gap: 8px; align-items: center; }
+        .file-action-btn { background: #F0F0F0; border: none; padding: 5px 12px; border-radius: 24px; cursor: pointer; font-size: 12px; }
+        .answer-area { background: white; padding: 12px 20px; border-top: 1px solid #D7DDD9; }
+        .answer-textbox { width: 100%; min-height: 120px; padding: 16px; font-size: 18px; border: 1px solid #aaa; border-radius: 12px; resize: vertical; }
         .nav-buttons { display: flex; gap: 8px; margin-left: auto; }
-        .nav-btn-custom {
-            background: #E2E8F0;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 24px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .placeholder-msg {
-            text-align: center;
-            margin-top: 50px;
-            font-size: 1.2rem;
-            color: #555;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal.active {
-            display: flex;
-        }
-        .modal-content {
-            background: #fff;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 500px;
-            padding: 24px;
-            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
-            font-family: 'Inter', sans-serif;
-        }
-        .modal-content h2 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            color: #1E325A;
-        }
-        .modal-content button {
-            display: block;
-            width: 100%;
-            margin-bottom: 12px;
-            padding: 12px;
-            border: none;
-            border-radius: 40px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #F0F0F0;
-            transition: 0.1s;
-        }
-        .modal-content button.danger {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-        .modal-content button.danger:hover {
-            background: #fecaca;
-        }
-        .modal-content button.primary {
-            background: #1E325A;
-            color: white;
-        }
-        .modal-content button.primary:hover {
-            background: #2c4a7a;
-        }
-        .modal-content .close-btn {
-            background: #e2e8f0;
-            margin-top: 8px;
-        }
+        .nav-btn-custom { background: #E2E8F0; border: none; padding: 6px 16px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 32px; width: 90%; max-width: 500px; padding: 24px; max-height: 80vh; overflow-y: auto; }
+        .modal-content input, .modal-content select { width: 100%; padding: 10px; margin: 8px 0 16px; border-radius: 40px; border: 1px solid #ccc; }
+        .modal-content button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 40px; border: none; font-weight: bold; cursor: pointer; }
+        .danger { background: #fee2e2; color: #b91c1c; }
+        .primary { background: #1E325A; color: white; }
+        .file-attach-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .file-attach-row span { font-weight: bold; min-width: 80px; }
     </style>
 </head>
 <body>
 <div class="app-window">
-    <div class="top-bar">
-        <div class="timer-box">
-            <div class="timer-icon">⏱️</div>
-            <div class="timer" id="timerDisplay">150:00</div>
-        </div>
-        <div class="kim-info editable" id="kimLabel">КИМ №------ БР №------</div>
-        <div class="font-controls">
-            <button class="font-btn" id="fontMinusBtn" title="Уменьшить шрифт">A−</button>
-            <button class="font-btn" id="fontPlusBtn" title="Увеличить шрифт">A+</button>
-        </div>
-        <div class="nav-buttons">
-            <button id="prevQBtn" class="nav-btn-custom">◀ Пред</button>
-            <button id="nextQBtn" class="nav-btn-custom">След ▶</button>
-        </div>
-        <div class="top-actions">
-            <button class="top-icon-btn" id="btnInfo" title="О программе">?</button>
-            <button class="top-icon-btn" id="btnUploadZip" title="Админ-панель">★</button>
-            <button class="top-icon-btn" id="btnMinimize" title="Свернуть">—</button>
-            <button class="top-icon-btn" id="btnClose" title="Закрыть">✕</button>
+    <div id="startModal" class="start-modal">
+        <div class="start-card">
+            <h1>Вступительные испытания</h1>
+            <input type="text" id="fioInput" placeholder="Введите ФИО участника" autocomplete="off">
+            <button id="startExamBtn" class="start-btn">Начать испытание</button>
+            <button id="techPanelBtn" class="tech-btn">Технический специалист</button>
         </div>
     </div>
 
-    <div class="stats-panel">
-        <span class="stats-label">Дано ответов:</span>
-        <span class="stats-count" id="answerCounter">0/16</span>
-        <div class="questions-nav" id="questionsNav">
-            <div class="buttons-wrapper" id="buttonsContainer"></div>
+    <div id="examContainer" class="exam-container hidden">
+        <div class="top-bar">
+            <div class="timer" id="timerDisplay">00:00</div>
+            <div class="fio-info" id="fioLabel">ФИО: ---</div>
+            <div class="variant-info" id="variantLabel">КИМ: ---</div>
+            <div class="font-controls">
+                <button class="font-btn" id="zoomOutBtn">A-</button>
+                <button class="font-btn" id="zoomInBtn">A+</button>
+            </div>
+            <div class="nav-buttons">
+                <button id="prevQBtn" class="nav-btn-custom">◀ Пред</button>
+                <button id="nextQBtn" class="nav-btn-custom">След ▶</button>
+            </div>
+            <div class="top-actions" style="margin-left: auto;">
+                <button id="exitToTechResultsBtn" style="background:#E2E8F0; border:none; padding:6px 12px; border-radius:24px;">Выход</button>
+            </div>
+        </div>
+        <div class="stats-panel">
+            <span class="stats-label">Дано ответов:</span>
+            <span class="stats-count" id="answerCounter">0/0</span>
+            <div class="questions-nav" id="questionsNav"><div class="buttons-wrapper" id="buttonsContainer"></div></div>
+        </div>
+        <div class="content-area" id="contentArea">
+            <iframe id="questionIframe" class="question-iframe" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
+        </div>
+        <div class="file-bar" id="fileBar"></div>
+        <div class="answer-area">
+            <textarea id="answerInput" class="answer-textbox" placeholder="Введите ответ здесь..."></textarea>
         </div>
     </div>
 
-    <div class="content-area">
-        <iframe id="questionIframe" class="question-iframe" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
+    <!-- Модалка технического специалиста (настройка) -->
+    <div id="techModal" class="modal">
+        <div class="modal-content">
+            <h2>Панель технического специалиста</h2>
+            <label>Номер варианта (КИМ):</label>
+            <input type="text" id="variantNumber" placeholder="">
+            <label>Количество заданий (1..N):</label>
+            <input type="number" id="tasksCount" min="1" max="50" placeholder="">
+            <label>Время выполнения (минуты):</label>
+            <input type="number" id="examTimeMinutes" min="1" max="300" placeholder="">
+            <label>Номера заданий, к которым можно прикреплять файлы (через запятую):</label>
+            <input type="text" id="tasksWithFiles" placeholder="">
+            <button id="uploadZipTechBtn" class="primary">Загрузить ZIP с заданиями (0.html ... N.html)</button>
+            <button id="techFullResetBtn" class="danger">Полный сброс всех данных</button>
+            <button id="techChangePasswordBtn">Сменить пароль</button>
+            <button id="techCloseBtn" class="close-btn">Закрыть</button>
+        </div>
     </div>
 
-    <div class="file-bar" id="fileBar"></div>
-
-    <div class="answer-area">
-        <textarea id="answerInput" class="answer-textbox" placeholder="Введите ответ здесь..." disabled></textarea>
-    </div>
-</div>
-
-<div id="adminModal" class="modal">
-    <div class="modal-content">
-        <h2>🛠 Админ-панель</h2>
-        <button id="adminUploadZipBtn" class="primary">📦 Загрузить ZIP с заданиями</button>
-        <button id="adminAddExtraFilesBtn">📎 Добавить дополнительные файлы</button>
-        <button id="adminResetAnswersBtn" class="danger">🗑 Сбросить все ответы</button>
-        <button id="adminClearTasksBtn" class="danger">🧹 Удалить все загруженные задания</button>
-        <button id="adminClearExtraBtn" class="danger">🗂 Удалить все дополнительные файлы</button>
-        <button id="adminFullResetBtn" class="danger">⚠️ Полный сброс (все данные)</button>
-        <button id="adminCloseBtn" class="close-btn">Закрыть</button>
+    <!-- Модалка выгрузки результатов (доступ по паролю) -->
+    <div id="resultsModal" class="modal">
+        <div class="modal-content">
+            <h2>Выгрузка результатов</h2>
+            <p>Введите пароль технического специалиста для выгрузки ответов.</p>
+            <input type="password" id="resultsPassword" placeholder="Пароль">
+            <button id="exportResultsBtn" class="primary">Выгрузить результаты (ZIP)</button>
+            <button id="closeResultsBtn" class="close-btn">Отмена</button>
+        </div>
     </div>
 </div>
 
 <script>
-    const ADMIN_PASSWORD = "koge2025";
-
-    let QUESTIONS = {};          // { 0: { title, html, path }, ... }
-    let answers = new Array(17).fill("");
+    // ------------------- Глобальные переменные -------------------
+    let QUESTIONS = {};              // { 0: {html, path}, 1: {...}, ... }
+    let answers = [];               // ответы на задания (индекс 0 - бланк)
     let currentIndex = 0;
-    let timerSeconds = 150 * 60;
+    let timerSeconds = 0;
     let timerInterval = null;
-    let kimBr = { kim: "------", br: "------" };
-    let brLocked = false;
-    let attachedFiles = { "13.1": null, "13.2": null, "14": null, "15": null, "16": null };
-    let extraFiles = [];
+    let examActive = false;
     let tasksLoaded = false;
-    let currentFontSize = 16;
-    let resources = new Map();    // относительный путь в ZIP -> Blob
+    let totalTasks = 16;
+    let variantNumber = "1";
+    let participantFIO = "";
+    let techPassword = "koge2025";
+    let examFinished = false;        // флаг, что время истекло или испытание завершено
+    let tasksWithFiles = [];         // массив номеров заданий (строки), для которых нужны файлы
+    let attachedFilesForTasks = new Map();  // key: номер задания (строка), value: File
+    let resources = new Map();        // путь в ZIP -> Blob
+    let iframeScale = 1.0;
 
+    // DOM элементы
+    const startModal = document.getElementById('startModal');
+    const examContainer = document.getElementById('examContainer');
+    const fioInput = document.getElementById('fioInput');
+    const startExamBtn = document.getElementById('startExamBtn');
+    const techPanelBtn = document.getElementById('techPanelBtn');
+    const techModal = document.getElementById('techModal');
+    const resultsModal = document.getElementById('resultsModal');
+    const variantNumberInput = document.getElementById('variantNumber');
+    const tasksCountInput = document.getElementById('tasksCount');
+    const examTimeMinutesInput = document.getElementById('examTimeMinutes');
+    const tasksWithFilesInput = document.getElementById('tasksWithFiles');
+    const uploadZipTechBtn = document.getElementById('uploadZipTechBtn');
+    const techFullResetBtn = document.getElementById('techFullResetBtn');
+    const techChangePasswordBtn = document.getElementById('techChangePasswordBtn');
+    const techCloseBtn = document.getElementById('techCloseBtn');
+    const exportResultsBtn = document.getElementById('exportResultsBtn');
+    const closeResultsBtn = document.getElementById('closeResultsBtn');
+    const resultsPassword = document.getElementById('resultsPassword');
+    const fioLabel = document.getElementById('fioLabel');
+    const variantLabel = document.getElementById('variantLabel');
     const timerDisplay = document.getElementById('timerDisplay');
-    const answerInput = document.getElementById('answerInput');
-    const questionIframe = document.getElementById('questionIframe');
-    const kimLabel = document.getElementById('kimLabel');
     const answerCounterSpan = document.getElementById('answerCounter');
     const buttonsContainer = document.getElementById('buttonsContainer');
     const prevBtn = document.getElementById('prevQBtn');
     const nextBtn = document.getElementById('nextQBtn');
+    const answerInput = document.getElementById('answerInput');
+    const questionIframe = document.getElementById('questionIframe');
+    const exitToTechResultsBtn = document.getElementById('exitToTechResultsBtn');
     const fileBar = document.getElementById('fileBar');
-    const fontPlusBtn = document.getElementById('fontPlusBtn');
-    const fontMinusBtn = document.getElementById('fontMinusBtn');
-    const adminModal = document.getElementById('adminModal');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const contentArea = document.getElementById('contentArea');
 
-    function updateKimLabel() {
-        kimLabel.innerText = `КИМ №${kimBr.kim} БР №${kimBr.br}`;
+    // ------------------- Сохранение и загрузка состояния -------------------
+    function saveState() {
+        const state = {
+            answers, currentIndex, timerSeconds, tasksLoaded, totalTasks, variantNumber,
+            participantFIO, examActive, examFinished, techPassword, iframeScale,
+            tasksWithFiles,
+            attachedFilesInfo: Array.from(attachedFilesForTasks.entries()).map(([k, v]) => ({task: k, name: v.name})),
+            QUESTIONS
+        };
+        localStorage.setItem('entrance_exam_state', JSON.stringify(state));
     }
 
-    function saveToLocalStorage() {
-        try {
-            const data = {
-                answers, currentIndex, timerSeconds, kimBr, brLocked,
-                attachedFilesKeys: Object.keys(attachedFiles).map(k => ({ key: k, hasFile: !!attachedFiles[k] })),
-                QUESTIONS, tasksLoaded, currentFontSize,
-                extraFilesNames: extraFiles.map(f => f.name)
-            };
-            localStorage.setItem('koge2025_data', JSON.stringify(data));
-        } catch(e) { console.warn(e); }
-    }
-
-    async function loadFromLocalStorage() {
-        const raw = localStorage.getItem('koge2025_data');
+    async function loadState() {
+        const raw = localStorage.getItem('entrance_exam_state');
         if (!raw) return;
         try {
             const data = JSON.parse(raw);
-            if (data.answers) answers = data.answers;
-            if (data.currentIndex !== undefined) currentIndex = data.currentIndex;
-            if (data.timerSeconds !== undefined) timerSeconds = data.timerSeconds;
-            if (data.kimBr) kimBr = data.kimBr;
-            if (data.brLocked !== undefined) brLocked = data.brLocked;
-            if (data.QUESTIONS && Object.keys(data.QUESTIONS).length > 0) {
-                QUESTIONS = data.QUESTIONS;
-                tasksLoaded = true;
-            } else if (data.tasksLoaded) {
-                tasksLoaded = data.tasksLoaded;
+            answers = data.answers || [];
+            currentIndex = data.currentIndex || 0;
+            timerSeconds = data.timerSeconds || 0;
+            tasksLoaded = data.tasksLoaded || false;
+            totalTasks = data.totalTasks || 16;
+            variantNumber = data.variantNumber || "1";
+            participantFIO = data.participantFIO || "";
+            examActive = data.examActive || false;
+            examFinished = data.examFinished || false;
+            techPassword = data.techPassword || "koge2025";
+            iframeScale = data.iframeScale || 1.0;
+            tasksWithFiles = data.tasksWithFiles || [];
+            if (data.QUESTIONS) QUESTIONS = data.QUESTIONS;
+            attachedFilesForTasks.clear();
+            if (data.attachedFilesInfo) {
+                for (let item of data.attachedFilesInfo) {
+                    // файлы физически не сохраняем, только имена
+                }
             }
-            if (data.currentFontSize) currentFontSize = data.currentFontSize;
-            extraFiles = [];
-            updateKimLabel();
-            if (brLocked) kimLabel.classList.remove('editable');
-            else kimLabel.classList.add('editable');
-
-            if (tasksLoaded) {
-                renderNavButtons();
-                renderCurrentQuestion();
-                loadAnswerToInput();
-                updateAnswerCounter();
-                answerInput.disabled = false;
-            } else {
-                questionIframe.srcdoc = '<html><body style="font-family:sans-serif; text-align:center; margin-top:50px;">⭐ Нажмите на звездочку ★, введите пароль и загрузите ZIP</body></html>';
-                answerInput.disabled = true;
+            if (tasksLoaded && Object.keys(QUESTIONS).length > 0) {
+                updateStartButtonState();
+                if (examActive && !examFinished && timerSeconds > 0) {
+                    startExamMode();
+                } else if (examFinished || timerSeconds <= 0) {
+                    examFinished = true;
+                    examActive = false;
+                    updateStartButtonState();
+                }
             }
+            applyZoom();
+            updateUI();
         } catch(e) {}
     }
 
-    function applyFontSize() {
-        // Для iframe шрифт не меняем, чтобы не ломать вёрстку заданий
+    function updateUI() {
+        if (examActive) {
+            renderNavButtons();
+            renderCurrentQuestion();
+            loadAnswerToInput();
+            updateAnswerCounter();
+            fioLabel.innerText = `ФИО: ${participantFIO || "—"}`;
+            variantLabel.innerText = `КИМ: ${variantNumber}`;
+            updateFileBarForCurrentTask();
+        }
     }
 
-    function changeFontSize(delta) {
-        let newSize = currentFontSize + delta;
-        if (newSize < 10) newSize = 10;
-        if (newSize > 40) newSize = 40;
-        currentFontSize = newSize;
-        saveToLocalStorage();
+    function updateStartButtonState() {
+        if (tasksLoaded && Object.keys(QUESTIONS).length > 0 && !examFinished && participantFIO.trim() !== "") {
+            startExamBtn.classList.add('active');
+            startExamBtn.disabled = false;
+        } else {
+            startExamBtn.classList.remove('active');
+            startExamBtn.disabled = true;
+        }
     }
 
     function updateAnswerCounter() {
-        let answeredCount = 0;
-        for (let i = 1; i <= 16; i++) {
-            if (answers[i] && answers[i].trim() !== '') answeredCount++;
+        let answered = 0;
+        for (let i = 1; i <= totalTasks; i++) {
+            if (answers[i] && answers[i].trim() !== '') answered++;
         }
-        answerCounterSpan.innerText = `${answeredCount}/16`;
+        answerCounterSpan.innerText = `${answered}/${totalTasks}`;
         renderNavButtons();
     }
 
     function saveCurrentAnswer() {
-        if (!tasksLoaded) return;
+        if (!examActive) return;
         let val = answerInput.value;
-        if (currentIndex === 0 && !brLocked && val.trim() !== "") {
-            kimBr.br = val.trim();
-            brLocked = true;
-            kimLabel.classList.remove('editable');
-            updateKimLabel();
-        }
         answers[currentIndex] = val;
         updateAnswerCounter();
-        saveToLocalStorage();
+        saveState();
     }
 
     function loadAnswerToInput() {
-        if (!tasksLoaded) return;
-        answerInput.value = answers[currentIndex] || "";
+        if (examActive && answers[currentIndex] !== undefined)
+            answerInput.value = answers[currentIndex] || "";
+        else answerInput.value = "";
     }
 
     function renderNavButtons() {
-        if (!tasksLoaded) {
-            buttonsContainer.innerHTML = '<span style="color:gray; padding:0 10px;">Загрузите ZIP</span>';
-            return;
-        }
         buttonsContainer.innerHTML = '';
-        const labels = ['БР', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'];
-        for (let i = 0; i <= 16; i++) {
+        const labels = ['БР', ...Array.from({length: totalTasks}, (_,i)=> (i+1).toString())];
+        for (let i = 0; i <= totalTasks; i++) {
             const btn = document.createElement('button');
             btn.className = 'q-btn';
             if (i >= 1 && answers[i] && answers[i].trim() !== '') btn.classList.add('answered');
             if (i === currentIndex) btn.classList.add('current');
             btn.textContent = labels[i];
-            btn.dataset.idx = i;
-            btn.addEventListener('click', () => {
-                if (!tasksLoaded) return;
+            btn.onclick = () => {
+                if (!examActive) return;
                 if (currentIndex === i) return;
                 saveCurrentAnswer();
                 currentIndex = i;
                 renderCurrentQuestion();
                 loadAnswerToInput();
                 renderNavButtons();
-                saveToLocalStorage();
-            });
+                updateFileBarForCurrentTask();
+                saveState();
+            };
             buttonsContainer.appendChild(btn);
         }
     }
 
-    function replaceResourceUrlsInHtml(html, basePath) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        const tagsWithSrc = doc.querySelectorAll('[src]');
-        for (let el of tagsWithSrc) {
-            let src = el.getAttribute('src');
-            if (src && !src.startsWith('data:') && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('blob:')) {
-                let fullPath = src;
-                if (basePath && !src.startsWith('/')) {
-                    fullPath = basePath + '/' + src;
-                }
-                let resourceBlob = resources.get(fullPath);
-                if (!resourceBlob && resources.get(src)) resourceBlob = resources.get(src);
-                if (!resourceBlob && resources.get('./' + src)) resourceBlob = resources.get('./' + src);
-                if (resourceBlob) {
-                    const blobUrl = URL.createObjectURL(resourceBlob);
-                    el.setAttribute('src', blobUrl);
-                }
-            }
-        }
-        
-        const links = doc.querySelectorAll('link[rel="stylesheet"][href]');
-        for (let link of links) {
-            let href = link.getAttribute('href');
-            if (href && !href.startsWith('http') && !href.startsWith('blob:')) {
-                let fullPath = href;
-                if (basePath && !href.startsWith('/')) fullPath = basePath + '/' + href;
-                let resourceBlob = resources.get(fullPath) || resources.get(href);
-                if (resourceBlob) {
-                    const blobUrl = URL.createObjectURL(resourceBlob);
-                    link.setAttribute('href', blobUrl);
-                }
-            }
-        }
-        
-        return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
-    }
-
     async function renderCurrentQuestion() {
-        if (!tasksLoaded) {
-            questionIframe.srcdoc = '<html><body style="font-family:sans-serif; text-align:center; margin-top:50px;">⭐ Нажмите на звездочку ★, введите пароль и загрузите ZIP</body></html>';
-            return;
-        }
+        if (!examActive) return;
         const q = QUESTIONS[currentIndex];
         if (q && q.html) {
             let html = q.html;
             const basePath = q.path || '';
-            html = replaceResourceUrlsInHtml(html, basePath);
+            html = replaceResourceUrls(html, basePath);
             questionIframe.srcdoc = html;
         } else {
-            questionIframe.srcdoc = `<html><body style="font-family:sans-serif; text-align:center; margin-top:50px;">❌ Задание ${currentIndex} не найдено в загруженном ZIP.<br>Убедитесь, что в архиве есть файл ${currentIndex}.html</body></html>`;
+            questionIframe.srcdoc = `<html><body style="font-family:sans-serif; text-align:center; margin-top:50px;">Ошибка: задание не загружено</body></html>`;
         }
+    }
+
+    function replaceResourceUrls(html, basePath) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const tagsWithSrc = doc.querySelectorAll('[src]');
+        for (let el of tagsWithSrc) {
+            let src = el.getAttribute('src');
+            if (src && !src.startsWith('data:') && !src.startsWith('http') && !src.startsWith('blob:')) {
+                let full = basePath ? basePath + '/' + src : src;
+                let blob = resources.get(full) || resources.get(src);
+                if (blob) el.setAttribute('src', URL.createObjectURL(blob));
+            }
+        }
+        const links = doc.querySelectorAll('link[rel="stylesheet"][href]');
+        for (let link of links) {
+            let href = link.getAttribute('href');
+            if (href && !href.startsWith('http') && !href.startsWith('blob:')) {
+                let full = basePath ? basePath + '/' + href : href;
+                let blob = resources.get(full) || resources.get(href);
+                if (blob) link.setAttribute('href', URL.createObjectURL(blob));
+            }
+        }
+        return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
     }
 
     function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
+            if (!examActive) return;
             if (timerSeconds <= 0) {
                 clearInterval(timerInterval);
-                timerDisplay.innerText = "00:00";
-                answerInput.disabled = true;
-                alert("Время экзамена истекло!");
+                examActive = false;
+                examFinished = true;
+                alert("Время испытания истекло. Обратитесь к техническому специалисту для выгрузки результатов.");
+                showResultsModal();
+                saveState();
                 return;
             }
             timerSeconds--;
             const mins = Math.floor(timerSeconds / 60);
             const secs = timerSeconds % 60;
-            timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            saveToLocalStorage();
+            timerDisplay.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            saveState();
         }, 1000);
     }
 
-    function initFileBar() {
-        const groups = [
-            { id: "13.1", label: "13.1" },
-            { id: "13.2", label: "13.2" },
-            { id: "14", label: "14" },
-            { id: "15", label: "15" },
-            { id: "16", label: "16" }
-        ];
+    function showResultsModal() {
+        resultsModal.classList.add('active');
+    }
+
+    async function exportResultsToZip() {
+        const zip = new JSZip();
+        let content = `Результаты вступительных испытаний\n`;
+        content += `Номер варианта (КИМ): ${variantNumber}\n`;
+        content += `ФИО участника: ${participantFIO}\n`;
+        content += `\nОтветы:\n`;
+        for (let i = 1; i <= totalTasks; i++) {
+            content += `Задание ${i}: ${answers[i] || ""}\n`;
+        }
+        zip.file("answers.txt", content);
+        const filesFolder = zip.folder("прикреплённые_файлы");
+        for (let [taskId, file] of attachedFilesForTasks.entries()) {
+            if (file) {
+                filesFolder.file(`задание_${taskId}_${file.name}`, await file.arrayBuffer());
+            }
+        }
+        const blob = await zip.generateAsync({ type: "blob" });
+        const fileName = `${participantFIO.replace(/[^а-яА-Яa-zA-Z0-9]/g, '_')}_вариант_${variantNumber}.zip`;
+        saveAs(blob, fileName);
+        alert("Результаты выгружены в ZIP-архиве.");
+        resultsModal.classList.remove('active');
+    }
+
+    function startExamMode() {
+        if (!tasksLoaded) return;
+        if (!participantFIO.trim()) {
+            alert("Введите ФИО участника!");
+            return;
+        }
+        if (examFinished) {
+            alert("Испытание уже завершено. Обратитесь к техническому специалисту.");
+            return;
+        }
+        examActive = true;
+        startModal.classList.add('hidden');
+        examContainer.classList.remove('hidden');
+        if (answers.length === 0) answers = new Array(totalTasks+1).fill("");
+        if (currentIndex === undefined) currentIndex = 0;
+        if (timerSeconds <= 0) timerSeconds = parseInt(examTimeMinutesInput.value) * 60;
+        startTimer();
+        updateUI();
+        saveState();
+    }
+
+    function resetToStart() {
+        examActive = false;
+        if (timerInterval) clearInterval(timerInterval);
+        startModal.classList.remove('hidden');
+        examContainer.classList.add('hidden');
+        updateStartButtonState();
+        saveState();
+    }
+
+    function updateFileBarForCurrentTask() {
         fileBar.innerHTML = '';
-        groups.forEach(group => {
+        const currentTaskId = currentIndex.toString();
+        if (tasksWithFiles.includes(currentTaskId)) {
             const div = document.createElement('div');
             div.className = 'file-btn-group';
             const upBtn = document.createElement('button');
             upBtn.className = 'file-action-btn';
-            upBtn.innerHTML = `⬆ ${group.label}`;
-            const downBtn = document.createElement('button');
-            downBtn.className = 'file-action-btn';
-            downBtn.innerHTML = '⬇';
-            const statusSpan = document.createElement('span');
-            statusSpan.className = 'file-status';
-            statusSpan.id = `file-status-${group.id.replace('.', '-')}`;
-            statusSpan.innerText = attachedFiles[group.id] ? '📎' : '⚪';
-            
+            upBtn.innerHTML = `⬆ Прикрепить файл к заданию ${currentTaskId}`;
             upBtn.onclick = () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        attachedFiles[group.id] = file;
-                        statusSpan.innerText = '📎';
-                        alert(`Файл "${file.name}" прикреплён к заданию ${group.label}`);
-                        saveToLocalStorage();
+                const inp = document.createElement('input');
+                inp.type = 'file';
+                inp.onchange = e => {
+                    if (e.target.files[0]) {
+                        attachedFilesForTasks.set(currentTaskId, e.target.files[0]);
+                        alert(`Файл прикреплён к заданию ${currentTaskId}`);
+                        saveState();
                     }
                 };
-                input.click();
+                inp.click();
             };
+            const downBtn = document.createElement('button');
+            downBtn.className = 'file-action-btn';
+            downBtn.innerHTML = '⬇ Скачать';
             downBtn.onclick = () => {
-                const file = attachedFiles[group.id];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = file.name;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                } else {
-                    alert(`Нет прикреплённого файла для ${group.label}. Сначала загрузите через ⬆`);
-                }
+                const f = attachedFilesForTasks.get(currentTaskId);
+                if (f) saveAs(f, f.name);
+                else alert("Файл не прикреплён");
             };
-            div.appendChild(upBtn);
-            div.appendChild(downBtn);
-            div.appendChild(statusSpan);
+            div.append(upBtn, downBtn);
             fileBar.appendChild(div);
-        });
+        }
         const extraDiv = document.createElement('div');
         extraDiv.className = 'file-btn-group';
-        const extraBtn = document.createElement('button');
-        extraBtn.className = 'file-action-btn';
-        extraBtn.innerHTML = '📎 Доп. файлы';
-        extraBtn.onclick = () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.multiple = true;
-            input.onchange = (e) => {
-                const files = Array.from(e.target.files);
-                for (let f of files) {
-                    extraFiles.push({ name: f.name, file: f });
-                }
-                alert(`Добавлено ${files.length} дополнительных файлов.`);
-                saveToLocalStorage();
-            };
-            input.click();
-        };
         const exportBtn = document.createElement('button');
         exportBtn.className = 'file-action-btn';
         exportBtn.innerHTML = '💾 Выгрузить ZIP';
-        exportBtn.onclick = exportZip;
-        extraDiv.appendChild(extraBtn);
+        exportBtn.onclick = async () => {
+            const zip = new JSZip();
+            const answersData = { вариант: variantNumber, ФИО: participantFIO, ответы: {} };
+            for (let i=1;i<=totalTasks;i++) answersData.ответы[`задание_${i}`] = answers[i]||"";
+            zip.file("answers.json", JSON.stringify(answersData));
+            const folder = zip.folder("файлы");
+            for (let [taskId, file] of attachedFilesForTasks.entries()) {
+                if (file) folder.file(`задание_${taskId}_${file.name}`, await file.arrayBuffer());
+            }
+            const blob = await zip.generateAsync({type:"blob"});
+            saveAs(blob, `archive_${variantNumber}.zip`);
+        };
         extraDiv.appendChild(exportBtn);
         fileBar.appendChild(extraDiv);
     }
 
-    async function exportZip() {
-        const zip = new JSZip();
-        const answersData = {
-            бланк_регистрации: answers[0],
-            ответы_задания: {},
-            киМ_бр: kimBr,
-            таймер_сек: timerSeconds
-        };
-        for (let i = 1; i <= 16; i++) {
-            answersData.ответы_задания[`задание_${i}`] = answers[i] || "";
+    async function uploadZipWithCount() {
+        const count = parseInt(tasksCountInput.value);
+        if (isNaN(count) || count < 1) {
+            alert("Укажите корректное количество заданий");
+            return;
         }
-        zip.file("answers.json", JSON.stringify(answersData, null, 2));
-        const tasksFolder = zip.folder("прикреплённые_файлы");
-        for (let [key, file] of Object.entries(attachedFiles)) {
-            if (file) tasksFolder.file(`${key}_${file.name}`, await file.arrayBuffer());
+        totalTasks = count;
+        const variant = variantNumberInput.value.trim();
+        if (variant === "") {
+            alert("Укажите номер варианта");
+            return;
         }
-        const extraFolder = zip.folder("дополнительные_файлы");
-        for (let extra of extraFiles) {
-            extraFolder.file(extra.name, await extra.file.arrayBuffer());
+        variantNumber = variant;
+        const minutes = parseInt(examTimeMinutesInput.value);
+        if (isNaN(minutes) || minutes < 1) {
+            alert("Укажите корректное время выполнения (минуты)");
+            return;
         }
-        const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, `koge2025_${kimBr.kim}_${kimBr.br}.zip`);
-        alert("ZIP-архив сформирован! Включены ответы и файлы.");
-    }
+        timerSeconds = minutes * 60;
+        const tasksWithFilesStr = tasksWithFilesInput.value.trim();
+        tasksWithFiles = tasksWithFilesStr ? tasksWithFilesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
-    async function uploadZipTasks() {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.zip';
@@ -693,224 +504,138 @@
                 const zip = await JSZip.loadAsync(file);
                 const newQuestions = {};
                 const newResources = new Map();
-                const foundIndices = new Set();
-
-                for (const [relativePath, zipEntry] of Object.entries(zip.files)) {
-                    if (zipEntry.dir) continue;
-                    const lowerName = relativePath.toLowerCase();
-                    if (!lowerName.endsWith('.html') && !lowerName.endsWith('.htm')) {
-                        const blob = await zipEntry.async("blob");
-                        newResources.set(relativePath, blob);
+                const found = new Set();
+                for (const [path, entry] of Object.entries(zip.files)) {
+                    if (entry.dir) continue;
+                    const lower = path.toLowerCase();
+                    if (!lower.endsWith('.html') && !lower.endsWith('.htm')) {
+                        newResources.set(path, await entry.async("blob"));
                     }
                 }
-
-                for (const [relativePath, zipEntry] of Object.entries(zip.files)) {
-                    if (zipEntry.dir) continue;
-                    const lowerName = relativePath.toLowerCase();
-                    if (lowerName.endsWith('.html') || lowerName.endsWith('.htm')) {
-                        let baseName = relativePath.split('/').pop().split('\\').pop();
-                        baseName = baseName.replace(/\.(html|htm)$/i, '');
-                        const num = parseInt(baseName, 10);
-                        if (!isNaN(num) && num >= 0 && num <= 16) {
-                            const content = await zipEntry.async("string");
-                            let title = `Задание ${num}`;
-                            const h1Match = content.match(/<h1[^>]*>(.*?)<\/h1>/i);
-                            const h2Match = content.match(/<h2[^>]*>(.*?)<\/h2>/i);
-                            if (h1Match) title = h1Match[1];
-                            else if (h2Match) title = h2Match[1];
-                            let pathParts = relativePath.split('/');
+                for (const [path, entry] of Object.entries(zip.files)) {
+                    if (entry.dir) continue;
+                    const lower = path.toLowerCase();
+                    if (lower.endsWith('.html') || lower.endsWith('.htm')) {
+                        let base = path.split('/').pop().split('\\').pop();
+                        base = base.replace(/\.(html|htm)$/i, '');
+                        let num = parseInt(base, 10);
+                        if (!isNaN(num) && num >= 0 && num <= totalTasks) {
+                            const html = await entry.async("string");
+                            let pathParts = path.split('/');
                             pathParts.pop();
                             const basePath = pathParts.join('/');
-                            newQuestions[num] = { title: title, html: content, path: basePath };
-                            foundIndices.add(num);
+                            newQuestions[num] = { html: html, path: basePath };
+                            found.add(num);
                         }
                     }
                 }
-
-                if (foundIndices.size === 0) {
-                    alert("В ZIP не найдено ни одного HTML-файла с именем от 0 до 16.");
+                let missing = [];
+                for (let i = 0; i <= totalTasks; i++) if (!newQuestions[i]) missing.push(i);
+                if (missing.length) {
+                    alert(`Отсутствуют файлы: ${missing.join(', ')}. Загрузка отменена.`);
                     return;
                 }
-
                 QUESTIONS = newQuestions;
                 resources = newResources;
                 tasksLoaded = true;
-                const missing = [];
-                for (let i = 0; i <= 16; i++) {
-                    if (!QUESTIONS[i]) missing.push(i);
-                }
-                if (missing.length) {
-                    alert(`Загружено заданий: ${foundIndices.size} из 17. Отсутствуют: ${missing.join(', ')}. Вы можете продолжить, но для отсутствующих будет показана ошибка.`);
-                } else {
-                    alert(`Успешно загружены все 17 заданий (0..16) и связанные ресурсы.`);
-                }
-                currentIndex = 0;
-                renderNavButtons();
-                await renderCurrentQuestion();
-                loadAnswerToInput();
-                updateAnswerCounter();
-                answerInput.disabled = false;
-                saveToLocalStorage();
+                examFinished = false;
+                examActive = false;
+                attachedFilesForTasks.clear();
+                saveState();
+                updateStartButtonState();
+                alert(`Загружено ${totalTasks+1} заданий. Вариант: ${variantNumber}`);
+                techModal.classList.remove('active');
+                resetToStart();
             } catch(err) {
-                console.error(err);
-                alert("Ошибка при распаковке ZIP.");
+                alert("Ошибка при обработке ZIP");
             }
         };
         input.click();
     }
 
-    // Админ-панель
-    function showPasswordPrompt() {
-        const password = prompt("Введите пароль для доступа к админ-панели:");
-        if (password === ADMIN_PASSWORD) {
-            adminModal.classList.add('active');
-        } else if (password !== null) {
-            alert("Неверный пароль. Доступ запрещён.");
-        }
-    }
-
-    function closeAdminModal() { adminModal.classList.remove('active'); }
-
-    function adminUploadZip() { uploadZipTasks(); closeAdminModal(); }
-    function adminAddExtraFiles() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            for (let f of files) {
-                extraFiles.push({ name: f.name, file: f });
-            }
-            alert(`Добавлено ${files.length} дополнительных файлов.`);
-            saveToLocalStorage();
-            closeAdminModal();
-        };
-        input.click();
-    }
-    function adminResetAnswers() {
-        if (confirm("Сбросить все ответы?")) {
-            answers = new Array(17).fill("");
-            brLocked = false;
-            kimBr.br = "------";
-            updateKimLabel();
-            kimLabel.classList.add('editable');
-            if (tasksLoaded) {
-                currentIndex = 0;
-                renderCurrentQuestion();
-                loadAnswerToInput();
-                updateAnswerCounter();
-            }
-            saveToLocalStorage();
-            alert("Все ответы сброшены.");
-        }
-        closeAdminModal();
-    }
-    function adminClearTasks() {
-        if (confirm("Удалить все загруженные задания?")) {
-            QUESTIONS = {};
-            resources.clear();
-            tasksLoaded = false;
-            currentIndex = 0;
-            renderNavButtons();
-            renderCurrentQuestion();
-            answerInput.disabled = true;
-            answerCounterSpan.innerText = "0/16";
-            saveToLocalStorage();
-            alert("Задания удалены.");
-        }
-        closeAdminModal();
-    }
-    function adminClearExtra() {
-        if (confirm("Удалить все дополнительные файлы?")) {
-            extraFiles = [];
-            alert("Дополнительные файлы удалены.");
-            saveToLocalStorage();
-        }
-        closeAdminModal();
-    }
-    function adminFullReset() {
-        if (confirm("ПОЛНЫЙ СБРОС: удалить все данные?")) {
-            localStorage.removeItem('koge2025_data');
+    function fullReset() {
+        if (confirm("ПОЛНЫЙ СБРОС: удалить всё (задания, ответы, настройки)?")) {
+            localStorage.removeItem('entrance_exam_state');
             location.reload();
         }
-        closeAdminModal();
     }
 
-    async function init() {
-        await loadFromLocalStorage();
-        if (!tasksLoaded) answerInput.disabled = true;
-        else answerInput.disabled = false;
-        startTimer();
-        initFileBar();
-
-        if (!tasksLoaded) {
-            questionIframe.srcdoc = '<html><body style="font-family:sans-serif; text-align:center; margin-top:50px;">⭐ Нажмите на звездочку ★, введите пароль и загрузите ZIP</body></html>';
-            buttonsContainer.innerHTML = '<span style="color:gray; padding:0 10px;">Загрузите ZIP</span>';
-            answerCounterSpan.innerText = '0/16';
+    function changePassword() {
+        const newPwd = prompt("Введите новый пароль для технического специалиста:");
+        if (newPwd && newPwd.trim()) {
+            techPassword = newPwd;
+            alert("Пароль изменён");
+            saveState();
         }
-
-        answerInput.addEventListener('input', () => { if(tasksLoaded) saveCurrentAnswer(); });
-        prevBtn.addEventListener('click', () => {
-            if (!tasksLoaded) { alert("Сначала загрузите задания через админ-панель (★)."); return; }
-            if (currentIndex > 0) {
-                saveCurrentAnswer();
-                currentIndex--;
-                renderCurrentQuestion();
-                loadAnswerToInput();
-                renderNavButtons();
-                saveToLocalStorage();
-            } else alert("Это первый раздел (БР).");
-        });
-        nextBtn.addEventListener('click', () => {
-            if (!tasksLoaded) { alert("Сначала загрузите задания через админ-панель (★)."); return; }
-            if (currentIndex < 16) {
-                saveCurrentAnswer();
-                currentIndex++;
-                renderCurrentQuestion();
-                loadAnswerToInput();
-                renderNavButtons();
-                saveToLocalStorage();
-            } else alert("Вы в конце заданий (16).");
-        });
-
-        kimLabel.addEventListener('click', () => {
-            if (!brLocked && tasksLoaded) {
-                let newKim = prompt("Введите номер КИМ:", kimBr.kim);
-                if (newKim !== null) kimBr.kim = newKim.trim() || "------";
-                let newBr = prompt("Введите номер БР:", kimBr.br);
-                if (newBr !== null) kimBr.br = newBr.trim() || "------";
-                updateKimLabel();
-                saveToLocalStorage();
-            } else if (brLocked) {
-                alert("Номер бланка уже зафиксирован.");
-            } else if (!tasksLoaded) {
-                alert("Сначала загрузите задания.");
-            }
-        });
-
-        fontPlusBtn.addEventListener('click', () => changeFontSize(2));
-        fontMinusBtn.addEventListener('click', () => changeFontSize(-2));
-
-        document.getElementById('btnInfo').addEventListener('click', () => {
-            alert("Станция КОГЭ 2025\n— Загрузите ZIP с файлами 0.html … 16.html через админ-панель (пароль: koge2025)\n— Поддерживаются картинки и ресурсы из ZIP\n— Таймер 150 минут.\n— Кнопки файлов для 13.1,13.2,14,15,16.\n— Экспорт ZIP с ответами и файлами.\n— Кнопки A+/A− для интерфейса (задания отображаются без изменений).");
-        });
-        document.getElementById('btnUploadZip').addEventListener('click', showPasswordPrompt);
-        document.getElementById('btnMinimize').addEventListener('click', () => alert("Свернуть окно можно через кнопку браузера."));
-        document.getElementById('btnClose').addEventListener('click', () => {
-            if (confirm("Завершить сессию? Данные сохранены в localStorage.")) window.close();
-        });
-
-        document.getElementById('adminUploadZipBtn').addEventListener('click', adminUploadZip);
-        document.getElementById('adminAddExtraFilesBtn').addEventListener('click', adminAddExtraFiles);
-        document.getElementById('adminResetAnswersBtn').addEventListener('click', adminResetAnswers);
-        document.getElementById('adminClearTasksBtn').addEventListener('click', adminClearTasks);
-        document.getElementById('adminClearExtraBtn').addEventListener('click', adminClearExtra);
-        document.getElementById('adminFullResetBtn').addEventListener('click', adminFullReset);
-        document.getElementById('adminCloseBtn').addEventListener('click', closeAdminModal);
-        adminModal.addEventListener('click', (e) => { if (e.target === adminModal) closeAdminModal(); });
     }
 
-    init();
+    function applyZoom() {
+        if (questionIframe) {
+            questionIframe.style.transform = `scale(${iframeScale})`;
+            questionIframe.style.width = `${100 / iframeScale}%`;
+            questionIframe.style.height = `${100 / iframeScale}%`;
+        }
+    }
+
+    function zoomIn() { if (iframeScale < 1.5) { iframeScale += 0.1; applyZoom(); saveState(); } }
+    function zoomOut() { if (iframeScale > 0.6) { iframeScale -= 0.1; applyZoom(); saveState(); } }
+
+    // Обработчики событий
+    answerInput.addEventListener('input', () => { if(examActive) saveCurrentAnswer(); });
+    prevBtn.onclick = () => {
+        if(examActive && currentIndex > 0) { saveCurrentAnswer(); currentIndex--; renderCurrentQuestion(); loadAnswerToInput(); renderNavButtons(); updateFileBarForCurrentTask(); saveState(); }
+    };
+    nextBtn.onclick = () => {
+        if(examActive && currentIndex < totalTasks) { saveCurrentAnswer(); currentIndex++; renderCurrentQuestion(); loadAnswerToInput(); renderNavButtons(); updateFileBarForCurrentTask(); saveState(); }
+    };
+    exitToTechResultsBtn.onclick = () => {
+        if (confirm("Выйти в режим выгрузки результатов? Таймер остановится.")) {
+            examActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+            showResultsModal();
+            saveState();
+        }
+    };
+    techPanelBtn.onclick = () => {
+        const pwd = prompt("Введите пароль технического специалиста:");
+        if (pwd === techPassword) {
+            // Очищаем поля ввода (делаем пустыми)
+            variantNumberInput.value = "";
+            tasksCountInput.value = "";
+            examTimeMinutesInput.value = "";
+            tasksWithFilesInput.value = "";
+            techModal.classList.add('active');
+        } else if (pwd !== null) alert("Неверный пароль");
+    };
+    uploadZipTechBtn.onclick = uploadZipWithCount;
+    techFullResetBtn.onclick = fullReset;
+    techChangePasswordBtn.onclick = changePassword;
+    techCloseBtn.onclick = () => techModal.classList.remove('active');
+    exportResultsBtn.onclick = () => {
+        const pwd = resultsPassword.value;
+        if (pwd === techPassword) {
+            exportResultsToZip();
+        } else {
+            alert("Неверный пароль");
+        }
+    };
+    closeResultsBtn.onclick = () => resultsModal.classList.remove('active');
+    startExamBtn.onclick = () => {
+        if (!tasksLoaded) { alert("Сначала загрузите задания через технического специалиста."); return; }
+        participantFIO = fioInput.value.trim();
+        if (!participantFIO) { alert("Введите ФИО участника"); return; }
+        if (examFinished) { alert("Испытание уже завершено. Обратитесь к техническому специалисту."); return; }
+        startExamMode();
+    };
+    zoomInBtn.onclick = zoomIn;
+    zoomOutBtn.onclick = zoomOut;
+
+    loadState().then(() => {
+        if (!tasksLoaded) updateStartButtonState();
+        else if (examActive && !examFinished && timerSeconds > 0) startExamMode();
+        else resetToStart();
+        applyZoom();
+    });
 </script>
 </body>
 </html>
