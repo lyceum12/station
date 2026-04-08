@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Станция тестирования</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #1E325A; font-family: 'Inter', sans-serif; }
+        .app-window { display: flex; flex-direction: column; width: 100%; height: 100%; background: #FFFFFF; }
+        .top-bar { background: #1E325A; height: 61px; display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; }
+        .kim-info { font-size: 20px; color: #FFFFFF; }
+        .timer-box { display: flex; align-items: center; gap: 8px; }
+        .timer-icon { background: #FFFFFF; border-radius: 20px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #087475; }
+        .timer { font-weight: 800; font-size: 24px; color: #087475; background: #FFFFFF; padding: 4px 12px; border-radius: 28px; }
+        .stats-panel { background: #e7edf9; padding: 5px 20px; display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid #E2E8F0; position: relative; flex-shrink: 0; }
+        .stats-label { font-size: 16px; font-weight: 500; }
+        .stats-count { font-size: 24px; font-weight: 800; }
+        .questions-nav { position: absolute; left: 50%; transform: translateX(-50%); top: -12px; z-index: 25; background: #F8FAFC; padding: 5px; border-radius: 8px; display: flex; gap: 6px; overflow-x: auto; max-width: 80%; }
+        .q-btn { font-weight: 700; font-size: 14px; min-width: 42px; height: 24px; border: none; border-radius: 6px; cursor: pointer; background: #F0F0F0; }
+        .q-btn.answered { background: #C0C0C0; }
+        .q-btn.current { background: #FFD7CC; box-shadow: 0 0 0 2px #FF8A5C; }
+        .content-area { flex: 1; padding: 20px; overflow-y: auto; }
+        .question-html { font-size: 1rem; line-height: 1.5; }
+        .question-html img { max-width: 100%; }
+        .file-bar { background: #1E325A; padding: 8px 20px; display: flex; align-items: center; gap: 16px; min-height: 50px; flex-shrink: 0; }
+        .file-btn { background: #F0F0F0; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; }
+        .answer-area { padding: 16px 20px 20px; border-top: 1px solid #D7DDD9; flex-shrink: 0; }
+        .answer-textbox { width: 100%; min-height: 120px; padding: 16px; font-size: 18px; border: 1px solid #aaa; border-radius: 12px; resize: vertical; }
+        .finish-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 40px; font-weight: bold; cursor: pointer; }
+        #registrationOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1E325A; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .reg-box { background: white; border-radius: 32px; padding: 2rem; width: 400px; text-align: center; }
+        .reg-box input { width: 100%; padding: 1rem; font-size: 1.5rem; text-align: center; border-radius: 60px; border: 2px solid #1E325A; margin-bottom: 1rem; }
+        .reg-box button { background: #1E325A; color: white; border: none; padding: 1rem 2rem; border-radius: 60px; font-size: 1.2rem; width: 100%; cursor: pointer; }
+        .error-msg { color: red; margin-top: 1rem; }
+        .result-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .result-box { background: white; border-radius: 32px; padding: 2rem; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    </style>
+</head>
+<body>
+<div id="registrationOverlay">
+    <div class="reg-box">
+        <h2>Введите код участника</h2>
+        <input type="text" id="codeInput" placeholder="">
+        <button id="startBtn">Начать тест</button>
+        <p id="errorMsg" class="error-msg"></p>
+    </div>
+</div>
+
+<div class="app-window" id="appWindow" style="display:none;">
+    <div class="top-bar">
+        <div class="timer-box">
+            <div class="timer-icon">T</div>
+            <div class="timer" id="timerDisplay">00:00</div>
+        </div>
+        <div class="kim-info" id="kimLabel"></div>
+        <div style="margin-left: auto;">
+            <button class="finish-btn" id="finishBtn">Завершить тестирование</button>
+        </div>
+    </div>
+    <div class="stats-panel">
+        <span class="stats-label">Дано ответов:</span>
+        <span class="stats-count" id="answerCounter">0/0</span>
+        <div class="questions-nav" id="questionsNav"></div>
+    </div>
+    <div class="content-area">
+        <div id="questionContent" class="question-html"></div>
+    </div>
+    <div class="file-bar" id="fileBar"></div>
+    <div class="answer-area">
+        <textarea id="answerInput" class="answer-textbox" placeholder="Введите ответ..."></textarea>
+    </div>
+</div>
+
+<script src="db.js"></script>
+<script>
+    (function(){
+        let db;
+        let session = null;
+        let testData = null;
+        let questions = [];
+        let answers = [];
+        let timerInterval = null;
+        let currentIndex = 0;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const testId = urlParams.get('testId');
+
+        async function init() {
+            db = await initDatabase();
+            if (!testId) {
+                document.getElementById('errorMsg').innerText = 'Не указан идентификатор теста';
+                return;
+            }
+            const tests = getTests(db);
+            testData = tests.find(t => t.id === testId);
+            if (!testData) {
+                document.getElementById('errorMsg').innerText = 'Тест не найден';
+                return;
+            }
+            document.getElementById('kimLabel').innerText = testData.title;
+
+            const savedSession = db.exec("SELECT * FROM test_sessions WHERE test_id = ? LIMIT 1", [testId]);
+            if (savedSession.length && savedSession[0].values.length) {
+                const s = savedSession[0].values[0];
+                const userCheck = db.exec("SELECT * FROM test_participants WHERE test_id = ? AND user_id = ?", [testId, s[2]]);
+                if (userCheck.length) {
+                    session = {
+                        id: s[0], testId: s[1], userId: s[2], startTime: s[3],
+                        remainingSeconds: s[4], currentIndex: s[5],
+                        answers: JSON.parse(s[6] || '[]'), variantQuestions: JSON.parse(s[7] || '[]')
+                    };
+                    questions = session.variantQuestions;
+                    answers = session.answers;
+                    currentIndex = session.currentIndex;
+                    showTestUI();
+                    startTimer();
+                    return;
+                }
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code) { document.getElementById('errorMsg').innerText = 'Введите код'; return; }
+
+            const userRes = db.exec("SELECT id, full_name FROM users WHERE code = ?", [code]);
+            if (!userRes.length) { document.getElementById('errorMsg').innerText = 'Неверный код'; return; }
+            const user = userRes[0].values[0];
+            const partRes = db.exec("SELECT * FROM test_participants WHERE test_id = ? AND user_id = ?", [testId, user[0]]);
+            if (!partRes.length) { document.getElementById('errorMsg').innerText = 'Нет доступа к тесту'; return; }
+
+            let variantQuestions = [];
+            if (testData.type === 'fixed') {
+                const qRes = db.exec("SELECT * FROM test_questions WHERE test_id = ? ORDER BY position", [testId]);
+                if (qRes.length) {
+                    variantQuestions = qRes[0].values.map(row => ({
+                        id: row[0], title: row[2], editor_data: row[3], file_required: row[4]
+                    }));
+                }
+            } else {
+                const taskIdsRes = db.exec("SELECT task_id FROM test_tasks WHERE test_id = ?", [testId]);
+                const taskIds = taskIdsRes.length ? taskIdsRes[0].values.flat() : [];
+                if (taskIds.length) {
+                    const count = Math.min(testData.task_count || 5, taskIds.length);
+                    const shuffled = [...taskIds].sort(() => Math.random() - 0.5).slice(0, count);
+                    const tasks = getTasks(db).filter(t => shuffled.includes(t.id));
+                    variantQuestions = tasks.map(t => ({
+                        id: t.id, title: t.title, editor_data: t.editor_data, file_required: t.file_required
+                    }));
+                }
+            }
+            if (!variantQuestions.length) { alert('В тесте нет вопросов'); return; }
+
+            questions = variantQuestions;
+            answers = questions.map(() => ({ answerText: '', file: null }));
+            const sessionId = 'sess_' + Date.now();
+            const startTime = Date.now();
+            const remaining = testData.time_limit * 60;
+            db.run(`INSERT INTO test_sessions (id, test_id, user_id, start_time, remaining_seconds, current_index, answers, variant_questions)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [sessionId, testId, user[0], startTime, remaining, 0, JSON.stringify(answers), JSON.stringify(questions)]);
+            saveDatabase();
+            session = { id: sessionId, testId, userId: user[0], startTime, remainingSeconds: remaining, currentIndex: 0, answers, variantQuestions: questions };
+            showTestUI();
+            startTimer();
+        });
+
+        function showTestUI() {
+            document.getElementById('registrationOverlay').style.display = 'none';
+            document.getElementById('appWindow').style.display = 'flex';
+            renderQuestion();
+            renderNav();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentIndex];
+            if (!q) return;
+            const contentDiv = document.getElementById('questionContent');
+            try {
+                const data = JSON.parse(q.editor_data || '{"blocks":[]}');
+                let html = '';
+                data.blocks.forEach(block => {
+                    switch(block.type) {
+                        case 'paragraph': html += `<p>${escapeHtml(block.data.text)}</p>`; break;
+                        case 'header': html += `<h${block.data.level}>${escapeHtml(block.data.text)}</h${block.data.level}>`; break;
+                        case 'list':
+                            const tag = block.data.style === 'ordered' ? 'ol' : 'ul';
+                            html += `<${tag}>${block.data.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</${tag}>`;
+                            break;
+                        case 'image':
+                            html += `<img src="${escapeHtml(block.data.file.url)}" style="max-width:100%">`;
+                            break;
+                    }
+                });
+                contentDiv.innerHTML = html || `<p>${escapeHtml(q.title)}</p>`;
+            } catch(e) {
+                contentDiv.innerHTML = `<p>${escapeHtml(q.title)}</p>`;
+            }
+            document.getElementById('answerInput').value = answers[currentIndex]?.answerText || '';
+            renderFileBar(q.file_required);
+            updateAnswerCounter();
+        }
+
+        function renderFileBar(fileRequired) {
+            const bar = document.getElementById('fileBar');
+            const ans = answers[currentIndex];
+            if (fileRequired) {
+                bar.innerHTML = `
+                    <button class="file-btn" id="attachFileBtn">Прикрепить файл</button>
+                    ${ans.file ? `<span style="color:white; margin-left:8px;">${ans.file.name}</span>` : ''}
+                `;
+                document.getElementById('attachFileBtn')?.addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                                answers[currentIndex].file = { name: file.name, data: ev.target.result };
+                                renderFileBar(true);
+                                saveSession();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    input.click();
+                });
+            } else {
+                bar.innerHTML = '';
+            }
+        }
+
+        function renderNav() {
+            const nav = document.getElementById('questionsNav');
+            nav.innerHTML = questions.map((_, idx) => {
+                const answered = answers[idx]?.answerText?.trim() || answers[idx]?.file;
+                return `<button class="q-btn ${idx === currentIndex ? 'current' : ''} ${answered ? 'answered' : ''}" data-idx="${idx}">${idx+1}</button>`;
+            }).join('');
+            nav.querySelectorAll('.q-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    saveCurrentAnswer();
+                    currentIndex = parseInt(btn.dataset.idx);
+                    renderQuestion();
+                    saveSession();
+                });
+            });
+        }
+
+        function saveCurrentAnswer() {
+            answers[currentIndex].answerText = document.getElementById('answerInput').value;
+        }
+
+        function updateAnswerCounter() {
+            const answered = answers.filter(a => a.answerText.trim() || a.file).length;
+            document.getElementById('answerCounter').innerText = `${answered}/${questions.length}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (session.remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    finishTest(true);
+                    return;
+                }
+                session.remainingSeconds--;
+                document.getElementById('timerDisplay').innerText = formatTime(session.remainingSeconds);
+                db.run("UPDATE test_sessions SET remaining_seconds = ? WHERE id = ?", [session.remainingSeconds, session.id]);
+            }, 1000);
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function saveSession() {
+            db.run("UPDATE test_sessions SET current_index = ?, answers = ? WHERE id = ?",
+                [currentIndex, JSON.stringify(answers), session.id]);
+            saveDatabase();
+            updateAnswerCounter();
+            renderNav();
+        }
+
+        document.getElementById('answerInput').addEventListener('input', () => {
+            answers[currentIndex].answerText = document.getElementById('answerInput').value;
+            saveSession();
+        });
+
+        document.getElementById('finishBtn').addEventListener('click', () => {
+            if (confirm('Завершить тестирование?')) finishTest(false);
+        });
+
+        async function finishTest(isAuto) {
+            clearInterval(timerInterval);
+            saveCurrentAnswer();
+
+            let score = 0;
+            const detailedResults = [];
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
+                const userAnswer = answers[i].answerText.trim();
+                const table = testData.type === 'fixed' ? 'test_answers' : 'task_answers';
+                const idField = testData.type === 'fixed' ? 'question_id' : 'task_id';
+                const ansRes = db.exec(`SELECT answer_text, is_correct FROM ${table} WHERE ${idField} = ?`, [q.id]);
+                const correctAnswers = ansRes.length ? ansRes[0].values.filter(r => r[1]).map(r => r[0].toLowerCase().trim()) : [];
+                const isCorrect = correctAnswers.includes(userAnswer.toLowerCase());
+                if (isCorrect) score++;
+                detailedResults.push({ questionTitle: q.title, userAnswer, correct: isCorrect, correctAnswers });
+            }
+
+            const resultId = 'res_' + Date.now();
+            db.run(`INSERT INTO test_results (id, test_id, user_id, start_time, end_time, answers, files, score)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [resultId, testId, session.userId, session.startTime, Date.now(), JSON.stringify(answers), JSON.stringify(answers.filter(a => a.file).map(a => a.file)), score]);
+            db.run("DELETE FROM test_sessions WHERE id = ?", [session.id]);
+            saveDatabase();
+
+            showResult(score, questions.length, detailedResults, testData.show_results);
+        }
+
+        function showResult(score, total, details, showDetails) {
+            const overlay = document.createElement('div');
+            overlay.className = 'result-overlay';
+            let detailsHtml = '';
+            if (showDetails) {
+                detailsHtml = `<h3>Детализация</h3><ul>`;
+                details.forEach((d, i) => {
+                    detailsHtml += `<li>Вопрос ${i+1}: ${escapeHtml(d.questionTitle)} — ${d.correct ? 'Правильно' : `Неверно (правильный ответ: ${d.correctAnswers.join(' или ')})`}</li>`;
+                });
+                detailsHtml += `</ul>`;
+            }
+            overlay.innerHTML = `
+                <div class="result-box">
+                    <h2>Тест завершён</h2>
+                    <p>Ваш результат: ${score} из ${total} баллов.</p>
+                    ${detailsHtml}
+                    <button class="finish-btn" style="margin-top:1rem;" onclick="window.location.reload()">Закрыть</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('appWindow').style.display = 'none';
+        }
+
+        function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+        init();
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление тестом</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f1f5f9; padding: 1.5rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .back-link { display: inline-block; margin-bottom: 1rem; color: #3b82f6; text-decoration: none; }
+        h1 { margin-bottom: 1.5rem; color: #1e293b; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+        .tab-btn { background: white; border: 1px solid #cbd5e1; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-weight: 500; }
+        .tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .panel { background: white; border-radius: 24px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .btn { background: #3b82f6; color: white; border: none; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; margin-right: 0.5rem; font-weight: 500; }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #1e293b; }
+        .btn-danger { background: #ef4444; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.6rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; font-weight: 600; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
+        input, select, textarea { width: 100%; padding: 0.5rem; border-radius: 20px; border: 1px solid #cbd5e1; margin-bottom: 1rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="teacher.html" class="back-link">← Назад к панели учителя</a>
+    <h1 id="testTitle">Управление тестом</h1>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="questions">Вопросы</button>
+        <button class="tab-btn" data-tab="participants">Участники</button>
+        <button class="tab-btn" data-tab="settings">Настройки</button>
+    </div>
+    <div id="tab-content" class="panel"></div>
+</div>
+
+<script src="db.js"></script>
+<script>
+    (function(){
+        if (!sessionStorage.getItem('teacherAuth')) window.location.href = 'index.html';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const testId = urlParams.get('testId');
+        if (!testId) window.location.href = 'teacher.html';
+
+        let db;
+        let test;
+        let currentTab = 'questions';
+
+        async function init() {
+            db = await initDatabase();
+            const tests = getTests(db);
+            test = tests.find(t => t.id === testId);
+            if (!test) { alert('Тест не найден'); window.location.href = 'teacher.html'; return; }
+            document.getElementById('testTitle').innerText = test.title;
+            renderTab();
+            setupTabs();
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTab = btn.dataset.tab;
+                    renderTab();
+                });
+            });
+        }
+
+        function renderTab() {
+            const container = document.getElementById('tab-content');
+            switch (currentTab) {
+                case 'questions': renderQuestionsTab(container); break;
+                case 'participants': renderParticipantsTab(container); break;
+                case 'settings': renderSettingsTab(container); break;
+            }
+        }
+
+        // --- Вкладка "Вопросы" ---
+        function renderQuestionsTab(container) {
+            if (test.type === 'fixed') {
+                const qRes = db.exec("SELECT * FROM test_questions WHERE test_id = ? ORDER BY position", [testId]);
+                const questions = qRes.length ? qRes[0].values.map(row => ({
+                    id: row[0], title: row[2], file_required: row[4]
+                })) : [];
+                let html = `<div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                    <h3>Вопросы теста</h3>
+                    <div>
+                        <button class="btn" id="addQuestionBtn">Добавить вопрос</button>
+                        <button class="btn-outline" id="importFromTasksBtn">Импорт из базы</button>
+                    </div>
+                </div>`;
+                if (questions.length === 0) {
+                    html += `<p>Вопросов нет.</p>`;
+                } else {
+                    html += `<table><thead><tr><th>№</th><th>Заголовок</th><th>Файл</th><th>Действия</th></tr></thead><tbody>`;
+                    questions.forEach((q, idx) => {
+                        html += `<tr>
+                            <td>${idx+1}</td>
+                            <td>${escapeHtml(q.title)}</td>
+                            <td>${q.file_required ? 'Да' : 'Нет'}</td>
+                            <td>
+                                <button class="btn-outline" data-edit="${q.id}">Редактировать</button>
+                                <button class="btn-outline" data-delete="${q.id}">Удалить</button>
+                            </td>
+                        </tr>`;
+                    });
+                    html += `</tbody></table>`;
+                }
+                container.innerHTML = html;
+                document.getElementById('addQuestionBtn')?.addEventListener('click', () => {
+                    window.location.href = `edit-question.html?testId=${testId}&mode=new`;
+                });
+                document.getElementById('importFromTasksBtn')?.addEventListener('click', showImportTasksModal);
+                container.querySelectorAll('[data-edit]').forEach(btn => {
+                    btn.addEventListener('click', () => window.location.href = `edit-question.html?testId=${testId}&questionId=${btn.dataset.edit}`);
+                });
+                container.querySelectorAll('[data-delete]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        if (confirm('Удалить вопрос?')) {
+                            db.run("DELETE FROM test_questions WHERE id = ?", [btn.dataset.delete]);
+                            saveDatabase();
+                            renderTab();
+                        }
+                    });
+                });
+            } else {
+                // generated
+                const taskIdsRes = db.exec("SELECT task_id FROM test_tasks WHERE test_id = ?", [testId]);
+                const selectedIds = taskIdsRes.length ? taskIdsRes[0].values.flat() : [];
+                const allTasks = getTasks(db);
+                let html = `<h3>Задания, включённые в генерацию</h3>
+                    <p>Выберите задания из базы (из них будет формироваться случайный вариант).</p>
+                    <div style="max-height:400px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:16px; padding:1rem; margin:1rem 0;">`;
+                allTasks.forEach(task => {
+                    html += `<label style="display:block;"><input type="checkbox" value="${task.id}" ${selectedIds.includes(task.id) ? 'checked' : ''}> ${escapeHtml(task.title)}</label>`;
+                });
+                html += `</div>
+                    <button class="btn" id="saveTaskSelection">Сохранить выбор</button>
+                    <p>Количество заданий в варианте задаётся в настройках теста.</p>`;
+                container.innerHTML = html;
+                document.getElementById('saveTaskSelection')?.addEventListener('click', () => {
+                    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+                    db.run("DELETE FROM test_tasks WHERE test_id = ?", [testId]);
+                    checkboxes.forEach(cb => {
+                        if (cb.checked) {
+                            db.run("INSERT INTO test_tasks (test_id, task_id) VALUES (?, ?)", [testId, cb.value]);
+                        }
+                    });
+                    saveDatabase();
+                    alert('Сохранено');
+                });
+            }
+        }
+
+        function showImportTasksModal() {
+            const tasks = getTasks(db);
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>Импорт заданий из базы</h3>
+                    <div style="max-height:400px; overflow-y:auto;">
+                        ${tasks.map(t => `<label style="display:block;"><input type="checkbox" value="${t.id}"> ${escapeHtml(t.title)}</label>`).join('')}
+                    </div>
+                    <div style="margin-top:1rem; display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn-outline" onclick="this.closest('.modal').remove()">Отмена</button>
+                        <button class="btn" id="confirmImport">Импортировать</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('confirmImport').addEventListener('click', () => {
+                const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+                checkboxes.forEach(cb => {
+                    const taskId = cb.value;
+                    const task = getTasks(db).find(t => t.id === taskId);
+                    if (!task) return;
+                    const ansRes = db.exec("SELECT answer_text, is_correct FROM task_answers WHERE task_id = ?", [taskId]);
+                    const answers = ansRes.length ? ansRes[0].values : [];
+                    const qId = 'q_' + Date.now() + '_' + Math.random().toString(36);
+                    const posRes = db.exec("SELECT MAX(position) FROM test_questions WHERE test_id = ?", [testId]);
+                    const pos = (posRes[0].values[0][0] || 0) + 1;
+                    db.run(`INSERT INTO test_questions (id, test_id, title, editor_data, file_required, position) VALUES (?, ?, ?, ?, ?, ?)`,
+                        [qId, testId, task.title, task.editor_data, task.file_required, pos]);
+                    answers.forEach(ans => {
+                        db.run("INSERT INTO test_answers (question_id, answer_text, is_correct) VALUES (?, ?, ?)", [qId, ans[0], ans[1]]);
+                    });
+                });
+                saveDatabase();
+                modal.remove();
+                renderTab();
+            });
+        }
+
+        // --- Вкладка "Участники" ---
+        function renderParticipantsTab(container) {
+            const partRes = db.exec(`SELECT u.id, u.full_name, u.code FROM test_participants tp JOIN users u ON tp.user_id = u.id WHERE tp.test_id = ?`, [testId]);
+            const participants = partRes.length ? partRes[0].values : [];
+            const groups = getGroups(db);
+            let html = `<h3>Участники теста</h3>`;
+            if (participants.length === 0) {
+                html += `<p>Нет участников.</p>`;
+            } else {
+                html += `<table><thead><tr><th>ФИО</th><th>Код</th><th></th></tr></thead><tbody>`;
+                participants.forEach(u => {
+                    html += `<tr><td>${escapeHtml(u[1])}</td><td>${escapeHtml(u[2])}</td><td><button class="btn-outline" data-remove="${u[0]}">Удалить</button></td></tr>`;
+                });
+                html += `</tbody></table>`;
+            }
+            html += `<div style="margin-top:2rem;">
+                <h4>Добавить участников</h4>
+                <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                    <div style="flex:1;">
+                        <label>Выберите группу:</label>
+                        <select id="groupSelect"><option value="">-- группа --</option>${groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('')}</select>
+                        <button class="btn-outline" id="addGroupBtn">Добавить группу</button>
+                    </div>
+                    <div style="flex:1;">
+                        <label>Отдельные пользователи:</label>
+                        <select id="userSelect" multiple size="5" style="height:auto;">${getUsers(db).map(u => `<option value="${u.id}">${escapeHtml(u.full_name)} (${u.code})</option>`).join('')}</select>
+                        <button class="btn-outline" id="addUsersBtn">Добавить выбранных</button>
+                    </div>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+            document.getElementById('addGroupBtn')?.addEventListener('click', () => {
+                const groupId = document.getElementById('groupSelect').value;
+                if (!groupId) return;
+                const userIds = db.exec("SELECT user_id FROM user_groups WHERE group_id = ?", [groupId]);
+                if (userIds.length) {
+                    userIds[0].values.forEach(row => {
+                        try { db.run("INSERT INTO test_participants (test_id, user_id) VALUES (?, ?)", [testId, row[0]]); } catch(e) {}
+                    });
+                    saveDatabase();
+                    renderTab();
+                }
+            });
+            document.getElementById('addUsersBtn')?.addEventListener('click', () => {
+                const select = document.getElementById('userSelect');
+                for (let opt of select.selectedOptions) {
+                    try { db.run("INSERT INTO test_participants (test_id, user_id) VALUES (?, ?)", [testId, opt.value]); } catch(e) {}
+                }
+                saveDatabase();
+                renderTab();
+            });
+            container.querySelectorAll('[data-remove]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    db.run("DELETE FROM test_participants WHERE test_id = ? AND user_id = ?", [testId, btn.dataset.remove]);
+                    saveDatabase();
+                    renderTab();
+                });
+            });
+        }
+
+        // --- Вкладка "Настройки" ---
+        function renderSettingsTab(container) {
+            container.innerHTML = `
+                <h3>Настройки теста</h3>
+                <div style="max-width:500px;">
+                    <label>Название:</label>
+                    <input type="text" id="editTitle" value="${escapeHtml(test.title)}">
+                    <label>Время (минут):</label>
+                    <input type="number" id="editTime" value="${test.time_limit}" min="1">
+                    <label><input type="checkbox" id="editShowResults" ${test.show_results ? 'checked' : ''}> Показывать результаты после завершения</label>
+                    ${test.type === 'generated' ? `<label>Количество заданий в варианте:</label><input type="number" id="editTaskCount" value="${test.task_count || 5}" min="1">` : ''}
+                    <button class="btn" id="saveSettingsBtn">Сохранить</button>
+                </div>
+            `;
+            document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+                const title = document.getElementById('editTitle').value.trim();
+                const time = parseInt(document.getElementById('editTime').value) || 30;
+                const show = document.getElementById('editShowResults').checked ? 1 : 0;
+                if (!title) { alert('Введите название'); return; }
+                db.run("UPDATE tests SET title = ?, time_limit = ?, show_results = ? WHERE id = ?", [title, time, show, testId]);
+                if (test.type === 'generated') {
+                    const taskCount = parseInt(document.getElementById('editTaskCount').value) || 5;
+                    db.run("UPDATE tests SET task_count = ? WHERE id = ?", [taskCount, testId]);
+                }
+                saveDatabase();
+                alert('Сохранено');
+                window.location.reload();
+            });
+        }
+
+        function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+        init();
+    })();
+</script>
+</body>
+</html>

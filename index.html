@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему тестирования</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-container { background: white; border-radius: 32px; padding: 2.5rem; width: 400px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        h1 { color: #1e293b; margin-bottom: 1.5rem; font-weight: 600; text-align: center; }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.3rem; color: #475569; font-weight: 500; }
+        input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #cbd5e1; border-radius: 40px; font-size: 1rem; }
+        input:focus { outline: none; border-color: #3b82f6; }
+        .btn { width: 100%; padding: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 40px; font-weight: 600; font-size: 1rem; cursor: pointer; }
+        .btn:hover { background: #2563eb; }
+        .error { color: #ef4444; margin-top: 0.5rem; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h1>Вход для учителя</h1>
+    <div class="form-group">
+        <label>Логин</label>
+        <input type="text" id="loginInput" placeholder="">
+    </div>
+    <div class="form-group">
+        <label>Пароль</label>
+        <input type="password" id="passwordInput" placeholder="">
+    </div>
+    <button class="btn" id="loginBtn">Войти</button>
+    <p id="loginError" class="error"></p>
+</div>
+
+<script src="db.js"></script>
+<script>
+    let db;
+    (async function() {
+        db = await initDatabase();
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const login = document.getElementById('loginInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            if (!login || !password) {
+                document.getElementById('loginError').innerText = 'Введите логин и пароль';
+                return;
+            }
+            const result = await authenticateTeacher(db, login, password);
+            if (result.success) {
+                sessionStorage.setItem('teacherAuth', 'true');
+                sessionStorage.setItem('teacherId', result.teacherId);
+                window.location.href = 'teacher.html';
+            } else {
+                document.getElementById('loginError').innerText = 'Неверный логин или пароль';
+            }
+        });
+        // Enter
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') document.getElementById('loginBtn').click();
+        });
+    })();
+</script>
+</body>
+</html>
