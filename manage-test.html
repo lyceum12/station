@@ -41,8 +41,7 @@
 <script src="db.js"></script>
 <script>
     (function(){
-        if (!sessionStorage.getItem('teacherAuth')) window.location.href = 'index.html';
-
+        // Авторизация убрана
         const urlParams = new URLSearchParams(window.location.search);
         const testId = urlParams.get('testId');
         if (!testId) window.location.href = 'teacher.html';
