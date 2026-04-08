@@ -23,33 +23,24 @@
         .modal-content { background: white; border-radius: 24px; padding: 2rem; width: 500px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
         input, select, textarea { width: 100%; padding: 0.5rem; border-radius: 20px; border: 1px solid #cbd5e1; margin-bottom: 1rem; }
         .checkbox-label { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
-        .logout-btn { float: right; background: #f1f5f9; border: none; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Панель учителя</h1>
-        <button class="logout-btn" id="logoutBtn">Выйти</button>
-    </div>
+    <h1>Панель учителя</h1>
     <div class="tabs">
         <button class="tab-btn active" data-tab="tests">Тесты</button>
         <button class="tab-btn" data-tab="tasks">База заданий</button>
         <button class="tab-btn" data-tab="users">Пользователи</button>
         <button class="tab-btn" data-tab="groups">Группы</button>
         <button class="tab-btn" data-tab="results">Результаты</button>
-        <button class="tab-btn" data-tab="password">Сменить пароль</button>
     </div>
     <div id="tab-content" class="panel"></div>
 </div>
 
 <script src="db.js"></script>
 <script>
-    // Проверка авторизации
-    if (!sessionStorage.getItem('teacherAuth')) {
-        window.location.href = 'index.html';
-    }
-
+    // Проверка авторизации убрана — прямой доступ
     let db;
     let currentTab = 'tests';
 
@@ -57,10 +48,6 @@
         db = await initDatabase();
         renderTab();
         setupTabs();
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            sessionStorage.removeItem('teacherAuth');
-            window.location.href = 'index.html';
-        });
     }
 
     function setupTabs() {
@@ -82,7 +69,6 @@
             case 'users': renderUsersTab(container); break;
             case 'groups': renderGroupsTab(container); break;
             case 'results': renderResultsTab(container); break;
-            case 'password': renderPasswordTab(container); break;
         }
     }
 
@@ -304,337 +290,128 @@
         const groups = getGroups(db);
         let html = `<div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
             <h2>Группы</h2>
-            <button class="btn" id="createGroupcreateGroupBtn">Btn">СозСоздать групдать группу</пу</buttonbutton>
-        </>
-        </div>div>`;
-       `;
-        if ( if (groups.lengthgroups.length ===  === 00)) {
-            {
-            html += html += `<p `<p>Н>Нет группет групп.</p>.</p>`;
-        }`;
-        } else else {
-            html {
-            html += += `<table `<table><thead><thead><tr><tr><th>><th>НазНазвание</вание</thth><th>><th>УчастУчастников</ников</thth><th>><th>ДейДействия</ствия</th></th></tr></tr></theadthead><tbody>><tbody>`;
-           `;
-            groups.forEach groups.forEach(group =>(group => {
-                {
-                const count const count = db = db.exec(".exec("SELECT COUNTSELECT COUNT(*) FROM(*) FROM user_g user_groups WHEREroups WHERE group_id group_id = ? = ?",", [group.id]) [group.id])[0].[0].valuesvalues[0[0][0][0];
-                html];
-                html += += `<tr `<tr>
-                    <td>>
-                    <td>${escape${escapeHtml(group.name)}Html(group.name)}</td</td>
-                   >
-                    <td <td>${>${count}</count}</tdtd>
-                   >
-                    <td <td>
-                       >
-                        <button class <button class="btn="btn-outline-outline" onclick" onclick="="managemanageGroup('Group('${group${group.id}.id}')">Управ')">Управление</ление</button>
-                        <button>
-                        <button classbutton class="btn="btn-out-outline" onclickline" onclick="delete="deleteGroup('Group('${group${group.id}.id}')">')">УдаУдалить</лить</buttonbutton>
->
-                    </                    </tdtd>
-                </>
-                </tr>tr>`;
-           `;
-            });
-            });
-            html += html += `</ `</tbody></tbody></table>table>`;
-       `;
-        }
-        }
-        container.innerHTML container.innerHTML = html = html;
-       ;
-        document.getElementById document.getElementById('create('createGroupBtnGroupBtn')?.')?.addEventListeneraddEventListener('click('click', ()', () => => {
-            const {
-            const name = name = prompt(' prompt('НазНазвание группывание группы::');
-           ');
-            if if (name (name)) {
-                const {
-                const id = id = 'gr 'grp_'p_' + Date + Date.now.now();
-                db();
-                db.run(".run("INSERT INTOINSERT INTO groups_table groups_table (id (id, name, name) VALUES) VALUES (?, (?, ?)", ?)", [id [id, name, name]);
-               ]);
-                save saveDatabaseDatabase();
-                render();
-                renderTabTab();
-           ();
-            }
-        }
-        });
-    });
-    }
-
-    window }
-
-    window.manage.manageGroup =Group = function(group function(groupId)Id) {
-        {
-        // От // Открытькрыть мода модальное окльное окно сно с добавлением добавлением пользователей пользователей в груп в группупу
-        const
-        const users = users = getUsers getUsers(db);
-        const(db);
-        const groupUsers = groupUsers = db.exec db.exec("SELECT("SELECT user_id user_id FROM user_groups FROM user_groups WHERE group WHERE group_id =_id = ?", ?", [groupId [groupId]);
-       ]);
-        const const groupUser groupUserIds =Ids = groupUsers groupUsers.length ?.length ? groupUsers groupUsers[0[0].values].values..flat()flat() : : [];
-
-        const [];
-
-        const modal = modal = document.createElement document.createElement('div('div');
-        modal.class');
-        modalName =.className = 'modal 'modal';
-       ';
-        modal.innerHTML modal.innerHTML = = `
-            `
-            <div class <div class="modal="modal-content"-content" style=" style="width:600pxwidth:600px;">
-               ;">
-                <h <h3>3>УправУправление группление группой</ой</h3h3>
-               >
-                <div <div style=" style="max-heightmax-height:400px;:400px; overflow-y overflow-y:auto:auto;">
-                   ;">
-                    ${users ${users.map(u.map(u => => `
-                        `
-                        <div <div>
-                           >
-                            <label <label><input type><input type="checkbox="checkbox" value" value="${u="${u.id}".id}" ${group ${groupUserIdsUserIds.includes(u.includes(u.id).id) ? ' ? 'checked'checked' : '' : ''}> ${}> ${escapeHtmlescapeHtml(u.full(u.full_name)}_name)} (${ (${u.codeu.code})</})</labellabel>
-                        </>
-                        </divdiv>
-                    `>
-                    `).).joinjoin('')('')}
-               }
-                </div>
-                </div>
-                <div <div style=" style="margin-topmargin-top:1:1rem;rem; display: display:flex;flex; gap: gap:10px; justify10px; justify-content:-content:flex-endflex-end;">
-                   ;">
-                    <button <button class=" class="btn-outbtn-outline"line" onclick="this.cl onclick="this.closest('.osest('.modal').modal').remove()remove()">От">Отмена</мена</buttonbutton>
-                   >
-                    <button class <button class="btn="btn" onclick" onclick="save="saveGroupUsersGroupUsers('${('${groupId}groupId}')">')">СохраСохранить</нить</button>
-                </div>
-           button>
-                </div>
-            </ </divdiv>
-        `>
-        `;
-       ;
-        document.body document.body.appendChild(.appendChild(modalmodal);
-   );
-    };
-
-    window };
-
-    window.saveGroup.saveGroupUsers =Users = function(group function(groupId)Id) {
-        {
-        const check const checkboxesboxes = document.querySelector = document.querySelectorAll('.All('.modal inputmodal input[type[type="checkbox="checkbox"]"]');
-        //');
-        // Уда Удалитьлить все теку все текущие связищие связи
-       
-        db.run db.run("DELETE("DELETE FROM user FROM user_groups_groups WHERE group WHERE group_id =_id = ?", ?", [groupId [groupId]);
-       ]);
-        checkboxes checkboxes.forEach(c.forEach(cb =>b => {
-            {
-            if ( if (cb.cb.checked)checked) {
-                {
-                db.run db.run("INSERT("INSERT INTO user_groups INTO user_groups (user (user_id,_id, group_id group_id) VALUES) VALUES (?, (?, ?)", ?)", [cb [cb.value,.value, groupId groupId]);
-           ]);
-            }
-        }
-        });
-        });
-        saveDatabase saveDatabase();
-       ();
-        document.querySelector document.querySelector('.modal('.modal').remove').remove();
-        renderTab();
-        renderTab();
-   ();
-    };
-
-    };
-
-    window.delete window.deleteGroup =Group = function(id function(id)) {
-        if {
-        if (confirm (confirm('У('Удалитьдалить группу группу?'))?')) {
-            {
-            db.run db.run("DELETE("DELETE FROM groups FROM groups_table WHERE_table WHERE id = id = ?", ?", [id [id]);
-           ]);
-            saveDatabase saveDatabase();
-           ();
-            renderTab renderTab();
-       ();
-        }
-    }
-    };
-
-    };
-
-    // В // Вкладкакладка "Ре "Результатызультаты"
-   "
-    function render function renderResultsTabResultsTab(container(container)) {
-        const {
-        const results = results = db.exec db.exec((`
-           `
-            SELECT r SELECT r.id,.id, r.test r.test_id,_id, r r.user_id.user_id, r, r.start_time.start_time, r, r.end_time.end_time, r.score,, r.score, t.title t.title, u, u.full_name.full_name, u, u.code.code
-            FROM
-            FROM test_results test_results r r
-            JOIN
-            JOIN tests t tests t ON r ON r.test_id.test_id = t = t.id.id
-            JOIN
-            JOIN users u users u ON r ON r.user_id.user_id = u = u.id.id
-            ORDER
-            ORDER BY r BY r.end_time.end_time DESC DESC
-        `
-        `);
-       );
-        let html let html = = `<h2 `<h2>Ре>Результаты тестизультаты тестирования</рования</h2>`;
-        if (!resultsh2>`;
-        if (!results.length ||.length || ! !resultsresults[0].[0].values.lengthvalues.length)) {
-            html {
-            html += += `<p> `<p>НетНет результатов.</ результатов.</p>p>`;
-       `;
+            <button class="btn" id="createGroupBtn">Создать группу</button>
+        </div>`;
+        if (groups.length === 0) {
+            html += `<p>Нет групп.</p>`;
         } else {
-            } else {
-            html += `<table html += `<table><thead><thead><tr><tr><th><th>Те>Тест</thст</><thth>><th>УчениУченик</к</thth><th>><th>КодКод</th><th</th><th>На>Началочало</th</th><th><th>За>Завершениевершение</th</th><th><th>Б>Баллыаллы</th</th><th><th>Д>Действияействия</th</th></tr></></tr></theadthead><tbody><tbody>>`;
-            results`;
-            results[0[0].values].values.forEach(row.forEach(row => => {
-                html {
-                html += += `<tr `<tr>
-                   >
-                    <td> <td>${escape${escapeHtml(rowHtml(row[6[6])}</])}</tdtd>
-                   >
-                    <td <td>${escapeHtml(row[7])}</>${escapeHtml(row[7])}</td>
-                   td>
-                    <td>${escape <td>${escapeHtml(rowHtml(row[8[8])}</])}</tdtd>
-                   >
-                    <td> <td>${new${new Date(row Date(row[3[3]).to]).toLocaleStringLocaleString()}</()}</tdtd>
-                   >
-                    <td> <td>${new${new Date(row Date(row[4[4]).to]).toLocaleStringLocaleString()}</()}</tdtd>
-                   >
-                    <td> <td>${row${row[5[5] !== null] !== null ? row ? row[5][5] : '-' : '-'}</td}</td>
-                   >
-                    <td <td><button><button class=" class="btn-outbtn-outline"line" onclick=" onclick="viewResultviewResultDetails('Details('${row${row[0[0]}')]}')">П">Просмотрросмотр</button</button></td></td>
-               >
-                </tr </tr>>`;
-           `;
+            html += `<table><thead><tr><th>Название</th><th>Участников</th><th>Действия</th></tr></thead><tbody>`;
+            groups.forEach(group => {
+                const count = db.exec("SELECT COUNT(*) FROM user_groups WHERE group_id = ?", [group.id])[0].values[0][0];
+                html += `<tr>
+                    <td>${escapeHtml(group.name)}</td>
+                    <td>${count}</td>
+                    <td>
+                        <button class="btn-outline" onclick="manageGroup('${group.id}')">Управление</button>
+                        <button class="btn-outline" onclick="deleteGroup('${group.id}')">Удалить</button>
+                    </td>
+                </tr>`;
             });
- });
-            html            html += ` += `</tbody</tbody></table></table>>`;
-       `;
+            html += `</tbody></table>`;
         }
-        container }
-        container.innerHTML =.innerHTML = html html;
-   ;
+        container.innerHTML = html;
+        document.getElementById('createGroupBtn')?.addEventListener('click', () => {
+            const name = prompt('Название группы:');
+            if (name) {
+                const id = 'grp_' + Date.now();
+                db.run("INSERT INTO groups_table (id, name) VALUES (?, ?)", [id, name]);
+                saveDatabase();
+                renderTab();
+            }
+        });
     }
 
-    }
+    window.manageGroup = function(groupId) {
+        const users = getUsers(db);
+        const groupUsers = db.exec("SELECT user_id FROM user_groups WHERE group_id = ?", [groupId]);
+        const groupUserIds = groupUsers.length ? groupUsers[0].values.flat() : [];
 
-    window window.view.viewResultDetails = function(resultId)ResultDetails = function(resultId) {
-        {
-        const result const result = = db db.exec(".exec("SELECT answersSELECT answers, test, test_id FROM_id FROM test test_results WHERE_results WHERE id = id = ?", ?", [result [resultId])Id])[0[0].values].values[0[0];
-       ];
-        const answers const answers = JSON = JSON.parse(result.parse(result[0] ||[0] || '[] '[]');
-       ');
-        const test const testId =Id = result result[1[1];
-        // Получить вопросы теста];
-        // Получить вопросы теста (для (для фикси фиксированных)рованных) или вариант или вариант се сессии?ссии? У Упростипростим –м – покажем покажем ответ ответыы.
-        let.
-        let details = details = ' 'ОтветыОтветы ученика ученика:\n:\n';
-       ';
-        answers.forEach answers.forEach((ans((ans, i, i) =>) => {
-            {
-            details += details += `В `Вопрос ${опрос ${i+i+1}:1}: ${ans ${ans.answer.answerText ||Text || '(пу '(пусто)'сто)'}\n}\n`;
-       `;
-        });
-        });
-        alert(details alert(details);
-   );
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="width:600px;">
+                <h3>Управление группой</h3>
+                <div style="max-height:400px; overflow-y:auto;">
+                    ${users.map(u => `
+                        <div>
+                            <label><input type="checkbox" value="${u.id}" ${groupUserIds.includes(u.id) ? 'checked' : ''}> ${escapeHtml(u.full_name)} (${u.code})</label>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:1rem; display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="btn-outline" onclick="this.closest('.modal').remove()">Отмена</button>
+                    <button class="btn" onclick="saveGroupUsers('${groupId}')">Сохранить</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     };
 
-    // };
-
-    // Вклад Вкладкака "Смена "Смена пароля пароля"
-   "
-    function render function renderPasswordTabPasswordTab(container(container) {
-        container) {
-        container.innerHTML =.innerHTML = `
-            `
-            <h <h2>2>СменитьСменить пароль пароль</h</h22>
-           >
-            <div style <div="max style="max-width:-width:400px400px;">
-               ;">
-                <label <label>Т>Текущийекущий пароль пароль:</label:</label>
-               >
-                <input <input type=" type="password"password" id=" id="currentPasscurrentPass">
-               ">
-                <label> <label>Новый пароль:</labelНовый пароль:</label>
-               >
-                <input <input type=" type="password"password" id=" id="newPassnewPass">
-               ">
-                <label <label>Под>Подтверждениетверждение:</label>
-                <input type:</label>
-                <input type="password"="password" id=" id="confirmPassconfirmPass">
-               ">
-                <button <button class=" class="btn"btn" id=" id="changePasswordchangePasswordBtn">Btn">СменитьСменить</button</button>
-               >
-                <p <p id=" id="passErrorpassError" style" style="color="color:red;"></p:red;"></p>
-           >
-            </div </div>
-       >
-        ` `;
-        document;
-        document.getElementById('.getElementById('changePasswordchangePasswordBtn').Btn').addEventListeneraddEventListener('click('click', ()', () => => {
-            const {
-            const current = current = document.getElementById document.getElementById('current('currentPass').Pass').valuevalue;
-            const;
-            const newPass = document newPass = document.getElementById('.getElementByIdnewPass('').valuenewPass').value;
-           ;
-            const confirm const confirm = document = document.getElementById('.getElementById('confirmPassconfirmPass').value').value;
-           ;
-            const teacher const teacherId =Id = sessionStorage sessionStorage.getItem('.getItem('teacherIdteacherId');
-           ');
-            const teacher const teacher = db = db.exec(".exec("SELECT passwordSELECT password_hash FROM_hash FROM teachers WHERE teachers WHERE id = id = ?", ?", [teacher [teacherId])Id])[0[0].values].values[0[0];
-           ];
-            if (! if (!verifyPasswordverifyPassword(current,(current, teacher teacher[0]))[0])) {
-                {
-                document.getElementById document.getElementById('('passError').passinnerTextError').innerText = ' = 'НеверНеверный текуный текущий парщий парольоль';
-                return';
-                return;
-           ;
+    window.saveGroupUsers = function(groupId) {
+        const checkboxes = document.querySelectorAll('.modal input[type="checkbox"]');
+        db.run("DELETE FROM user_groups WHERE group_id = ?", [groupId]);
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                db.run("INSERT INTO user_groups (user_id, group_id) VALUES (?, ?)", [cb.value, groupId]);
             }
- }
-            if            if (newPass (newPass !== confirm !== confirm)) {
-                document {
-                document.getElementById('.getElementById('passErrorpassError').inner').innerText =Text = 'П 'Паролиароли не сов не совпападаютдают';
-               ';
-                return return;
-           ;
-            }
-            if }
-            if (new (newPass.lengthPass.length <  < 4)4) {
-                {
-                document.getElementById document.getElementById('pass('passError').Error').innerTextinnerText = ' = 'ПарПароль слишкомоль слишком короткий короткий';
-               ';
-                return return;
-           ;
-            }
-            change }
-            changeTeacherPasswordTeacherPassword(db,(db, teacherId teacherId, new, newPass);
-            alertPass);
-            alert('П('Парольароль изменён изменён');
-           ');
-            renderTab renderTab();
-       ();
         });
-    });
+        saveDatabase();
+        document.querySelector('.modal').remove();
+        renderTab();
+    };
+
+    window.deleteGroup = function(id) {
+        if (confirm('Удалить группу?')) {
+            db.run("DELETE FROM groups_table WHERE id = ?", [id]);
+            saveDatabase();
+            renderTab();
+        }
+    };
+
+    // Вкладка "Результаты"
+    function renderResultsTab(container) {
+        const results = db.exec(`
+            SELECT r.id, r.test_id, r.user_id, r.start_time, r.end_time, r.score, t.title, u.full_name, u.code
+            FROM test_results r
+            JOIN tests t ON r.test_id = t.id
+            JOIN users u ON r.user_id = u.id
+            ORDER BY r.end_time DESC
+        `);
+        let html = `<h2>Результаты тестирования</h2>`;
+        if (!results.length || !results[0].values.length) {
+            html += `<p>Нет результатов.</p>`;
+        } else {
+            html += `<table><thead><tr><th>Тест</th><th>Ученик</th><th>Код</th><th>Начало</th><th>Завершение</th><th>Баллы</th><th>Действия</th></tr></thead><tbody>`;
+            results[0].values.forEach(row => {
+                html += `<tr>
+                    <td>${escapeHtml(row[6])}</td>
+                    <td>${escapeHtml(row[7])}</td>
+                    <td>${escapeHtml(row[8])}</td>
+                    <td>${new Date(row[3]).toLocaleString()}</td>
+                    <td>${new Date(row[4]).toLocaleString()}</td>
+                    <td>${row[5] !== null ? row[5] : '-'}</td>
+                    <td><button class="btn-outline" onclick="viewResultDetails('${row[0]}')">Просмотр</button></td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+        }
+        container.innerHTML = html;
     }
 
-    }
+    window.viewResultDetails = function(resultId) {
+        const result = db.exec("SELECT answers, test_id FROM test_results WHERE id = ?", [resultId])[0].values[0];
+        const answers = JSON.parse(result[0] || '[]');
+        const testId = result[1];
+        let details = 'Ответы ученика:\n';
+        answers.forEach((ans, i) => {
+            details += `Вопрос ${i+1}: ${ans.answerText || '(пусто)'}\n`;
+        });
+        alert(details);
+    };
 
-    function escapeHtml(s function escapeHtml(s) {) { return s return s.replace(/.replace(/[[&&<>]/<>]/g,g, m => m => ({' ({'&':'&':'&amp&amp;',';','<':'<':'&lt;','&lt;','>':'>':'&gt&gt;';'})})[m]);[m]); }
+    function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
-    }
-
-    init init();
-</script();
+    init();
 </script>
-</>
-</bodybody>
+</body>
 </html>
-</html>
->
